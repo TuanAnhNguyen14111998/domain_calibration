@@ -33,7 +33,11 @@ def train_model(
     
     since = time.time()
 
+    train_acc_history = []
     val_acc_history = []
+
+    train_loss_history = []
+    val_loss_history = []
     
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
@@ -91,8 +95,30 @@ def train_model(
                 path_save = folder_save + f"/resnet_34_kfold_{k_fold}.pth"
                 torch.save(model.state_dict(), path_save)
                 print("\n Saving best model ... ")
+
+            if not os.path.isfile(folder_save + f"/resnet_34_kfold_{k_fold}_train_history.txt"):
+                f = open(folder_save + f"/resnet_34_kfold_{k_fold}_history.txt", "a")
+                f.write("epoch_loss, epoch_acc")
+                f.close()
+            
+            if not os.path.isfile(folder_save + f"/resnet_34_kfold_{k_fold}_val_history.txt"):
+                f = open(folder_save + f"/resnet_34_kfold_{k_fold}_history.txt", "a")
+                f.write("epoch_loss, epoch_acc")
+                f.close()
+
+            if phase == "train":
+                train_loss_history.append(epoch_loss)
+                train_acc_history.append(epoch_acc)
+                f = open(folder_save + f"/resnet_34_kfold_{k_fold}_train_history.txt", "a")
+                f.write(str(epoch_loss) + ", " + str(epoch_acc))
+                f.close()
+            
             if phase == 'val':
+                val_loss_history.append(epoch_loss)
                 val_acc_history.append(epoch_acc)
+                f = open(folder_save + f"/resnet_34_kfold_{k_fold}_val_history.txt", "a")
+                f.write(str(epoch_loss) + ", " + str(epoch_acc))
+                f.close()
 
         print()
 
