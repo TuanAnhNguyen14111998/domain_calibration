@@ -134,16 +134,15 @@ def train_model(
 
 if __name__ == "__main__":
     config_params = {
-        "path_csv": "/Users/tuananh/tuananh/domain_calibration/datasets/dataset_information.csv",
-        "path_root": "/Users/tuananh/tuananh/domain_calibration/datasets/",
+        "path_csv": "/vinbrain/anhng/domain_adaptation/datasets/Office/amazon_kfold.csv",
+        "path_root": "/vinbrain/anhng/domain_adaptation/datasets/Office/amazon/images/",
         "input_size": 256,
-        "batch_size": 1,
+        "batch_size": 132,
         "num_workers": 4,
-        "number_classes": 2,
         "learning_rate": 0.001,
         "momentum": 0.9,
-        "number_epochs": 15,
-        "path_weight_save": "/Users/tuananh/tuananh/domain_calibration/weights/"
+        "number_epochs": 50,
+        "path_weight_save": "/workspace/domain_calibration/experiments/Office/amazon/"
     }
 
     # define data transform for train and validation
@@ -170,6 +169,8 @@ if __name__ == "__main__":
     # Initializing Datasets and Dataloader
     print("Initializing Datasets and Dataloaders...")
     df_info = pd.read_csv(config_params["path_csv"])
+    
+    number_classes = len(set(df_info["classes"]))
 
     k_fold = 3
     for k in range(3):
@@ -198,7 +199,7 @@ if __name__ == "__main__":
                 num_workers=config_params["num_workers"]) for x in ['train', 'val']}
 
         model_ft = initialize_model(
-            num_classes=config_params["number_classes"], 
+            num_classes=number_classes,
             feature_extract=True, 
             use_pretrained=True
         )
