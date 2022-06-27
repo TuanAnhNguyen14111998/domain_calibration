@@ -161,7 +161,7 @@ if __name__ == "__main__":
                 f"/workspace/domain_calibration/experiments/{dataset_name}/{domain_name}/"
             
             if dataset_name ==  "Office-Home":
-                path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/{domain_name}/OfficeHomeDataset_10072016/"
+                path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/OfficeHomeDataset_10072016/{domain_name}/"
             else:
                 path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/{domain_name}/images/"
 
