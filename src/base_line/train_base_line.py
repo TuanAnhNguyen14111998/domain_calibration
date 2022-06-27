@@ -110,14 +110,14 @@ def train_model(
                 train_loss_history.append(epoch_loss)
                 train_acc_history.append(epoch_acc)
                 f = open(folder_save + f"/resnet_34_kfold_{k_fold}_train_history.txt", "a")
-                f.write(str(epoch_loss.item()) + ", " + str(epoch_acc.item()))
+                f.write(str(epoch_loss) + ", " + str(epoch_acc.item()))
                 f.close()
             
             if phase == 'val':
                 val_loss_history.append(epoch_loss)
                 val_acc_history.append(epoch_acc)
                 f = open(folder_save + f"/resnet_34_kfold_{k_fold}_val_history.txt", "a")
-                f.write(str(epoch_loss.item()) + ", " + str(epoch_acc.item()))
+                f.write(str(epoch_loss) + ", " + str(epoch_acc.item()))
                 f.close()
 
         print()
