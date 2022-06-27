@@ -2,4 +2,5 @@
 .vscode/
 datasets/
 .DS_Store
+experiments/
 

@@ -140,7 +140,7 @@ if __name__ == "__main__":
         "batch_size": 132,
         "num_workers": 4,
         "learning_rate": 0.001,
-        "momentum": 0.9,
+        "beta": (0.9,0.999),
         "number_epochs": 50,
         "path_weight_save": "/workspace/domain_calibration/experiments/Office/amazon/"
     }
@@ -213,10 +213,13 @@ if __name__ == "__main__":
                 params_to_update.append(param)
                 print("\t",name)
 
-        optimizer_ft = optim.SGD(
-            params_to_update, 
-            lr=config_params["learning_rate"], 
-            momentum=config_params["momentum"]
+        optimizer_ft = optim.Adam(
+            params_to_update,
+            lr=config_params["learning_rate"],
+            betas=config_params["beta"],
+            eps=1e-08,
+            weight_decay=0,
+            amsgrad=False
         )
 
         criterion = nn.CrossEntropyLoss()
