@@ -135,13 +135,13 @@ def train_model(
 
 if __name__ == "__main__":
     config_params = {
-        "dataset_name": ["Office", "Office-Home", "OfficeHomeDataset_10072016"],
+        "dataset_name": ["Office", "Office-Home"],
         "input_size": 256,
         "batch_size": 132,
         "num_workers": 4,
         "learning_rate": 0.001,
         "beta": (0.9,0.999),
-        "number_epochs": 50,
+        "number_epochs": 120,
     }
     
     for dataset_name in config_params["dataset_name"]:
@@ -161,9 +161,9 @@ if __name__ == "__main__":
                 f"/workspace/domain_calibration/experiments/{dataset_name}/{domain_name}/"
             
             if dataset_name ==  "Office-Home":
-                path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/{domain_name}/images/"
+                path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/{domain_name}/OfficeHomeDataset_10072016/"
             else:
-                path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/{domain_name}/"
+                path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/{domain_name}/images/"
 
             if not os.path.isdir(path_weight_save):
                 os.makedirs(path_weight_save)
