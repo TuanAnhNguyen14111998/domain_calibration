@@ -24,7 +24,13 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 import pkbar
 
-def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_inception=False):
+def train_model(
+    model, dataloaders, criterion, 
+    optimizer, num_epochs=25, 
+    folder_save="./experiments/", 
+    k_fold=0,
+    is_inception=False):
+    
     since = time.time()
 
     val_acc_history = []
@@ -34,7 +40,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_ince
 
     for epoch in range(num_epochs):
         print('Training epoch {}/{}'.format(epoch, num_epochs - 1))
-        print('-' * 20)
+        print('-' * 50)
         
         for phase in ['train', 'val']:
             if phase == 'train':
@@ -45,7 +51,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_ince
             kbar = pkbar.Kbar(
                 target=len(dataloaders[phase]), 
                 epoch=epoch, num_epochs=num_epochs, 
-                width=20, always_stateful=False
+                width=80, always_stateful=False
             )
             
             running_loss = 0.0
@@ -82,6 +88,9 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_ince
             if phase == 'val' and epoch_acc > best_acc:
                 best_acc = epoch_acc
                 best_model_wts = copy.deepcopy(model.state_dict())
+                path_save = folder_save + f"/resnet_34_kfold_{k_fold}.pth"
+                torch.save(model.state_dict(), path_save)
+                print("\n Saving best model ... ")
             if phase == 'val':
                 val_acc_history.append(epoch_acc)
 
@@ -99,14 +108,16 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_ince
 
 if __name__ == "__main__":
     config_params = {
-        "path_data": "/Users/tuananh/tuananh/domain_calibration/datasets/dataset_information.csv",
+        "path_csv": "/Users/tuananh/tuananh/domain_calibration/datasets/dataset_information.csv",
+        "path_root": "/Users/tuananh/tuananh/domain_calibration/datasets/",
         "input_size": 256,
         "batch_size": 1,
         "num_workers": 4,
         "number_classes": 2,
         "learning_rate": 0.001,
         "momentum": 0.9,
-        "number_epochs": 15
+        "number_epochs": 15,
+        "path_weight_save": "/Users/tuananh/tuananh/domain_calibration/weights/"
     }
 
     # define data transform for train and validation
@@ -132,55 +143,64 @@ if __name__ == "__main__":
 
     # Initializing Datasets and Dataloader
     print("Initializing Datasets and Dataloaders...")
-    df_info = pd.read_csv(config_params["path_data"])
-    image_datasets = {
-        "train": Dataset(
-            df_info=df_info[df_info.phase=="train"],
-            image_size=config_params["input_size"], 
-            transforms=data_transforms["train"]),
-        "val": Dataset(
-            df_info=df_info[df_info.phase=="val"], 
-            image_size=config_params["input_size"], 
-            transforms=data_transforms["val"]),
+    df_info = pd.read_csv(config_params["path_csv"])
 
-    }
+    k_fold = 3
+    for k in range(3):
+        df_info_k_fold = df_info.copy()
+        df_info_k_fold["phase"] = "train"
+        df_info_k_fold.loc[df_info_k_fold.kfold==k, ['phase']] = 'val'
+        image_datasets = {
+            "train": Dataset(
+                df_info=df_info_k_fold[df_info_k_fold.phase=="train"],
+                folder_data=config_params["path_root"],
+                image_size=config_params["input_size"], 
+                transforms=data_transforms["train"]),
+            "val": Dataset(
+                df_info=df_info_k_fold[df_info_k_fold.phase=="val"], 
+                folder_data=config_params["path_root"],
+                image_size=config_params["input_size"], 
+                transforms=data_transforms["val"]),
 
-    dataloaders_dict = {
-        x: torch.utils.data.DataLoader(
-            image_datasets[x], 
-            batch_size=config_params["batch_size"], 
-            shuffle=True, 
-            num_workers=config_params["num_workers"]) for x in ['train', 'val']}
+        }
 
+        dataloaders_dict = {
+            x: torch.utils.data.DataLoader(
+                image_datasets[x], 
+                batch_size=config_params["batch_size"], 
+                shuffle=True, 
+                num_workers=config_params["num_workers"]) for x in ['train', 'val']}
 
-    model_ft = initialize_model(
-        num_classes=config_params["number_classes"], 
-        feature_extract=True, 
-        use_pretrained=True
-    )
-    model_ft = model_ft.to(device)
+        model_ft = initialize_model(
+            num_classes=config_params["number_classes"], 
+            feature_extract=True, 
+            use_pretrained=True
+        )
+        model_ft = model_ft.to(device)
 
-    params_to_update = model_ft.parameters()
-    print("Params to learn:")
-    params_to_update = []
-    for name,param in model_ft.named_parameters():
-        if param.requires_grad == True:
-            params_to_update.append(param)
-            print("\t",name)
+        params_to_update = model_ft.parameters()
+        print("Params to learn:")
+        params_to_update = []
+        for name,param in model_ft.named_parameters():
+            if param.requires_grad == True:
+                params_to_update.append(param)
+                print("\t",name)
 
-    optimizer_ft = optim.SGD(
-        params_to_update, 
-        lr=config_params["learning_rate"], 
-        momentum=config_params["momentum"]
-    )
+        optimizer_ft = optim.SGD(
+            params_to_update, 
+            lr=config_params["learning_rate"], 
+            momentum=config_params["momentum"]
+        )
 
-    criterion = nn.CrossEntropyLoss()
+        criterion = nn.CrossEntropyLoss()
 
-    # # Train and evaluate
-    # model_ft, hist = train_model(
-    #     model_ft, dataloaders_dict, 
-    #     criterion, optimizer_ft, 
-    #     num_epochs=config_params["number_epochs"], 
-    #     is_inception=False
-    # )
+        # Train and evaluate
+        model_ft, hist = train_model(
+            model_ft, dataloaders_dict, 
+            criterion, optimizer_ft, 
+            num_epochs=config_params["number_epochs"],
+            folder_save=config_params["path_weight_save"],
+            k_fold=k,
+            is_inception=False
+        )
     

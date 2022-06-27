@@ -23,8 +23,9 @@ def image_resize(image, width = None, height = None, inter = cv2.INTER_AREA):
 
 
 class Dataset(data.Dataset):
-    def __init__(self, df_info, image_size, transforms=None):
+    def __init__(self, df_info, folder_data, image_size, transforms=None):
         self.df_info = df_info
+        self.folder_data = folder_data
         self.labels = {
             k:index for index, k in enumerate(set(self.df_info.class_name))
         }
@@ -35,9 +36,13 @@ class Dataset(data.Dataset):
         return len(self.df_info)
 
     def __getitem__(self, index):
-        class_name = self.df_info.iloc[index]["class_name"]
-        image_path = self.df_info.iloc[index]["image_path"]
-        image_path = f"{image_path}"
+        labels = self.df_info.iloc[index]["class_name"]
+        image_id = self.df_info.iloc[index]["imageid"]
+
+        class_name = image_id.split("__")[0]
+        image_name = image_id.split("__")[1]
+
+        image_path = self.folder_data + "/" + image_id.split("__")[0] + f"/{image_name}"
 
         image = cv2.imread(image_path)
         image = image_resize(image, width=self.image_size, height=self.image_size)
@@ -50,6 +55,6 @@ class Dataset(data.Dataset):
             image = sample["image"]
 
         X = torch.Tensor(image).permute(2, 0, 1)
-        y = self.labels[class_name]
+        y = labels
 
         return X, y

@@ -17,4 +17,4 @@ dependencies:
     - efficientnet-pytorch==0.7.0
     - albumentations==0.4.6
     - pkbar==0.5
-
+    - openpyxl
