@@ -97,7 +97,7 @@ def train_model(
                 print("\n Saving best model ... ")
 
             if not os.path.isfile(folder_save + f"/resnet_34_kfold_{k_fold}_train_history.txt"):
-                f = open(folder_save + f"/resnet_34_kfold_{k_fold}_history.txt", "a")
+                f = open(folder_save + f"/resnet_34_kfold_{k_fold}_train_history.txt", "a")
                 f.write("epoch_loss, epoch_acc")
                 f.close()
             
