@@ -5,6 +5,7 @@ import torch.optim as optim
 import torch.nn as nn
 import time
 import copy
+import glob
 
 import os
 import sys
@@ -110,14 +111,14 @@ def train_model(
                 train_loss_history.append(epoch_loss)
                 train_acc_history.append(epoch_acc)
                 f = open(folder_save + f"/resnet_34_kfold_{k_fold}_train_history.txt", "a")
-                f.write(str(epoch_loss) + ", " + str(epoch_acc.item()))
+                f.write("\n" + str(epoch_loss) + ", " + str(epoch_acc.item()))
                 f.close()
             
             if phase == 'val':
                 val_loss_history.append(epoch_loss)
                 val_acc_history.append(epoch_acc)
                 f = open(folder_save + f"/resnet_34_kfold_{k_fold}_val_history.txt", "a")
-                f.write(str(epoch_loss) + ", " + str(epoch_acc.item()))
+                f.write("\n" + str(epoch_loss) + ", " + str(epoch_acc.item()))
                 f.close()
 
         print()
@@ -134,103 +135,113 @@ def train_model(
 
 if __name__ == "__main__":
     config_params = {
-        "path_csv": "/vinbrain/anhng/domain_adaptation/datasets/Office/amazon_kfold.csv",
         "path_root": "/vinbrain/anhng/domain_adaptation/datasets/Office/amazon/images/",
+        "dataset_name": "Office",
         "input_size": 256,
         "batch_size": 132,
         "num_workers": 4,
         "learning_rate": 0.001,
         "beta": (0.9,0.999),
         "number_epochs": 50,
-        "path_weight_save": "/workspace/domain_calibration/experiments/Office/amazon/"
     }
 
-    # define data transform for train and validation
-    data_transforms = {
-        'train': A.Compose([
-            A.RandomResizedCrop(width=224, height=224),
-            A.HorizontalFlip(p=0.5),
-            A.Normalize(
-                mean=(0.485, 0.456, 0.406), 
-                std=(0.229, 0.224, 0.225)
-            )
-        ]),
-        'val': A.Compose([
-            A.Resize(width=224, height=224),
-            A.CenterCrop(width=224, height=224),
-            A.Normalize(
-                mean=(0.485, 0.456, 0.406), 
-                std=(0.229, 0.224, 0.225)
-            )
-        ])
-    }
+    path_information =\
+        f"/vinbrain/anhng/domain_adaptation/datasets/{config_params['dataset_name']}/information/"
 
+    for path_csv in glob.glob(path_information + ".csv"):
+        domain_name = path_csv.split("/")[-1].replace("_kfold.csv", "")
 
-    # Initializing Datasets and Dataloader
-    print("Initializing Datasets and Dataloaders...")
-    df_info = pd.read_csv(config_params["path_csv"])
-    
-    number_classes = len(set(df_info["classes"]))
+        print(f"Running on {config_params['dataset_name']} with domain: {domain_name} .... ")
+        
+        path_weight_save =\
+            f"/workspace/domain_calibration/experiments/{config_params['dataset_name']}/{domain_name}/"
 
-    k_fold = 3
-    for k in range(3):
-        df_info_k_fold = df_info.copy()
-        df_info_k_fold["phase"] = "train"
-        df_info_k_fold.loc[df_info_k_fold.kfold==k, ['phase']] = 'val'
-        image_datasets = {
-            "train": Dataset(
-                df_info=df_info_k_fold[df_info_k_fold.phase=="train"],
-                folder_data=config_params["path_root"],
-                image_size=config_params["input_size"], 
-                transforms=data_transforms["train"]),
-            "val": Dataset(
-                df_info=df_info_k_fold[df_info_k_fold.phase=="val"], 
-                folder_data=config_params["path_root"],
-                image_size=config_params["input_size"], 
-                transforms=data_transforms["val"]),
+        if not os.path.isdir(path_weight_save):
+            os.makedirs(path_weight_save)
 
+        data_transforms = {
+            'train': A.Compose([
+                A.RandomResizedCrop(width=224, height=224),
+                A.HorizontalFlip(p=0.5),
+                A.Normalize(
+                    mean=(0.485, 0.456, 0.406), 
+                    std=(0.229, 0.224, 0.225)
+                )
+            ]),
+            'val': A.Compose([
+                A.Resize(width=224, height=224),
+                A.CenterCrop(width=224, height=224),
+                A.Normalize(
+                    mean=(0.485, 0.456, 0.406), 
+                    std=(0.229, 0.224, 0.225)
+                )
+            ])
         }
+        
+        print("Initializing Datasets and Dataloaders...")
+        df_info = pd.read_csv(path_csv)
+        
+        number_classes = len(set(df_info["classes"]))
 
-        dataloaders_dict = {
-            x: torch.utils.data.DataLoader(
-                image_datasets[x], 
-                batch_size=config_params["batch_size"], 
-                shuffle=True, 
-                num_workers=config_params["num_workers"]) for x in ['train', 'val']}
+        k_fold = 3
+        for k in range(3):
+            df_info_k_fold = df_info.copy()
+            df_info_k_fold["phase"] = "train"
+            df_info_k_fold.loc[df_info_k_fold.kfold==k, ['phase']] = 'val'
+            image_datasets = {
+                "train": Dataset(
+                    df_info=df_info_k_fold[df_info_k_fold.phase=="train"],
+                    folder_data=config_params["path_root"],
+                    image_size=config_params["input_size"], 
+                    transforms=data_transforms["train"]),
+                "val": Dataset(
+                    df_info=df_info_k_fold[df_info_k_fold.phase=="val"], 
+                    folder_data=config_params["path_root"],
+                    image_size=config_params["input_size"], 
+                    transforms=data_transforms["val"]),
 
-        model_ft = initialize_model(
-            num_classes=number_classes,
-            feature_extract=True, 
-            use_pretrained=True
-        )
-        model_ft = model_ft.to(device)
+            }
 
-        params_to_update = model_ft.parameters()
-        print("Params to learn:")
-        params_to_update = []
-        for name,param in model_ft.named_parameters():
-            if param.requires_grad == True:
-                params_to_update.append(param)
-                print("\t",name)
+            dataloaders_dict = {
+                x: torch.utils.data.DataLoader(
+                    image_datasets[x], 
+                    batch_size=config_params["batch_size"], 
+                    shuffle=True, 
+                    num_workers=config_params["num_workers"]) for x in ['train', 'val']}
 
-        optimizer_ft = optim.Adam(
-            params_to_update,
-            lr=config_params["learning_rate"],
-            betas=config_params["beta"],
-            eps=1e-08,
-            weight_decay=0,
-            amsgrad=False
-        )
+            model_ft = initialize_model(
+                num_classes=number_classes,
+                feature_extract=True, 
+                use_pretrained=True
+            )
+            model_ft = model_ft.to(device)
 
-        criterion = nn.CrossEntropyLoss()
+            params_to_update = model_ft.parameters()
+            print("Params to learn:")
+            params_to_update = []
+            for name,param in model_ft.named_parameters():
+                if param.requires_grad == True:
+                    params_to_update.append(param)
+                    print("\t",name)
 
-        # Train and evaluate
-        model_ft, hist = train_model(
-            model_ft, dataloaders_dict, 
-            criterion, optimizer_ft, 
-            num_epochs=config_params["number_epochs"],
-            folder_save=config_params["path_weight_save"],
-            k_fold=k,
-            is_inception=False
-        )
+            optimizer_ft = optim.Adam(
+                params_to_update,
+                lr=config_params["learning_rate"],
+                betas=config_params["beta"],
+                eps=1e-08,
+                weight_decay=0,
+                amsgrad=False
+            )
+
+            criterion = nn.CrossEntropyLoss()
+
+            # Train and evaluate
+            model_ft, hist = train_model(
+                model_ft, dataloaders_dict, 
+                criterion, optimizer_ft, 
+                num_epochs=config_params["number_epochs"],
+                folder_save=path_weight_save,
+                k_fold=k,
+                is_inception=False
+            )
     
