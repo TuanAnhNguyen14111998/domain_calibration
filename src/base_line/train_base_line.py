@@ -148,7 +148,7 @@ if __name__ == "__main__":
     path_information =\
         f"/vinbrain/anhng/domain_adaptation/datasets/{config_params['dataset_name']}/information/"
 
-    for path_csv in glob.glob(path_information + ".csv"):
+    for path_csv in glob.glob(path_information + "/*.csv"):
         domain_name = path_csv.split("/")[-1].replace("_kfold.csv", "")
 
         print(f"Running on {config_params['dataset_name']} with domain: {domain_name} .... ")
@@ -177,7 +177,7 @@ if __name__ == "__main__":
                 )
             ])
         }
-        
+
         print("Initializing Datasets and Dataloaders...")
         df_info = pd.read_csv(path_csv)
         
