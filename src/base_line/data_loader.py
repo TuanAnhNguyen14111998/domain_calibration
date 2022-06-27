@@ -26,9 +26,6 @@ class Dataset(data.Dataset):
     def __init__(self, df_info, folder_data, image_size, transforms=None):
         self.df_info = df_info
         self.folder_data = folder_data
-        self.labels = {
-            k:index for index, k in enumerate(set(self.df_info.class_name))
-        }
         self.image_size = image_size
         self.transforms = transforms
 
@@ -36,7 +33,7 @@ class Dataset(data.Dataset):
         return len(self.df_info)
 
     def __getitem__(self, index):
-        labels = self.df_info.iloc[index]["class_name"]
+        labels = self.df_info.iloc[index]["classes"]
         image_id = self.df_info.iloc[index]["imageid"]
 
         class_name = image_id.split("__")[0]
