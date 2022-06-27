@@ -135,7 +135,6 @@ def train_model(
 
 if __name__ == "__main__":
     config_params = {
-        "path_root": "/vinbrain/anhng/domain_adaptation/datasets/Office/amazon/images/",
         "dataset_name": "Office",
         "input_size": 256,
         "batch_size": 132,
@@ -155,6 +154,8 @@ if __name__ == "__main__":
         
         path_weight_save =\
             f"/workspace/domain_calibration/experiments/{config_params['dataset_name']}/{domain_name}/"
+        
+        path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{config_params['dataset_name']}/{domain_name}/images/"
 
         if not os.path.isdir(path_weight_save):
             os.makedirs(path_weight_save)
@@ -191,12 +192,12 @@ if __name__ == "__main__":
             image_datasets = {
                 "train": Dataset(
                     df_info=df_info_k_fold[df_info_k_fold.phase=="train"],
-                    folder_data=config_params["path_root"],
+                    folder_data=path_root,
                     image_size=config_params["input_size"], 
                     transforms=data_transforms["train"]),
                 "val": Dataset(
                     df_info=df_info_k_fold[df_info_k_fold.phase=="val"], 
-                    folder_data=config_params["path_root"],
+                    folder_data=path_root,
                     image_size=config_params["input_size"], 
                     transforms=data_transforms["val"]),
 
