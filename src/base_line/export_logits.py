@@ -62,6 +62,8 @@ def train_model(
         index=False
     )
 
+    return df_finish_pred
+
 
 if __name__ == "__main__":
     config_params = {
@@ -74,6 +76,7 @@ if __name__ == "__main__":
         "number_epochs": 120,
     }
     
+
     for dataset_name in config_params["dataset_name"]:
         if dataset_name == "Office-Home":
             path_information =\
@@ -83,6 +86,8 @@ if __name__ == "__main__":
                 f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/information/"
 
         for path_csv in glob.glob(path_information + "/*.csv"):
+            dataframe_logits = []
+            
             domain_name = path_csv.split("/")[-1].replace("_kfold.csv", "")
 
             print(f"Running on {dataset_name} with domain: {domain_name} .... ")
@@ -154,8 +159,19 @@ if __name__ == "__main__":
                 model_ft.eval()
                 model_ft = model_ft.to(device)
 
-                train_model(
+
+
+                df_finish_pred = train_model(
                     model_ft, dataloaders_dict, 
                     folder_save=path_weight_save,
                     k_fold=k
                 )
+
+                dataframe_logits.append(df_finish_pred)
+            
+            dataframe_logits = pd.concat(dataframe_logits)
+            dataframe_logits.to_csv(
+                path_weight_save + f"/resnet_34_kfold_val_logits.csv", 
+                index=False
+            )
+            
