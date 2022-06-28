@@ -16,6 +16,9 @@ root_folder = os.path.join(
 )
 sys.path.insert(0, root_folder)
 
+import warnings
+warnings.filterwarnings("ignore")
+
 from src.base_line.data_loader_export_logits import Dataset
 from src.base_line.restnet34 import initialize_model
 
@@ -45,10 +48,9 @@ def train_model(
             outputs = model(inputs)
             _, preds = torch.max(outputs, 1)
             for index, pred in enumerate(preds):
-                records[index]["logit"] = list(outputs[index].detach().numpy())
-                records[index]["predict"] = int(pred.detach().numpy())
-
-            df_finish_pred = df_finish_pred.append(records[index])
+                records[index]["logit"] = list(outputs[index].cpu().detach().numpy())
+                records[index]["predict"] = int(pred.cpu().detach().numpy())
+                df_finish_pred = df_finish_pred.append(records[index])
 
             df_finish_pred.to_csv(
                 folder_save + f"/resnet_34_kfold_{k_fold}_val_logits.csv",
