@@ -52,22 +52,12 @@ def train_model(
                 records[index]["predict"] = int(pred.cpu().detach().numpy())
                 df_finish_pred = df_finish_pred.append(records[index])
 
-            df_finish_pred.to_csv(
-                folder_save + f"/resnet_34_kfold_{k_fold}_val_logits.csv",
-                index=False
-            )
-    
-    df_finish_pred.to_csv(
-        folder_save + f"/resnet_34_kfold_{k_fold}_val_logits.csv",
-        index=False
-    )
-
     return df_finish_pred
 
 
 if __name__ == "__main__":
     config_params = {
-        "dataset_name": ["Office"],
+        "dataset_name": ["Office-Home"],
         "input_size": 256,
         "batch_size": 132,
         "num_workers": 4,
@@ -85,9 +75,9 @@ if __name__ == "__main__":
             path_information =\
                 f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/information/"
 
-        for path_csv in glob.glob(path_information + "/*.csv"):
-            dataframe_logits = []
-            
+        all_csv_domain = glob.glob(path_information + "/*.csv")
+
+        for path_csv in all_csv_domain:
             domain_name = path_csv.split("/")[-1].replace("_kfold.csv", "")
 
             print(f"Running on {dataset_name} with domain: {domain_name} .... ")
@@ -115,63 +105,68 @@ if __name__ == "__main__":
             }
 
             print("Initializing Datasets and Dataloaders...")
-            df_info = pd.read_csv(path_csv)
-            
-            number_classes = len(set(df_info["classes"]))
+            informations = [
+                {
+                    "dataframe": pd.read_csv(path_csv),
+                    "domain_name": path_csv.split("/")[-1].replace("_kfold.csv", "")
+                }
+                for path_csv in all_csv_domain
+            ]
+
+            number_classes = len(set(informations[0]["dataframe"]["classes"]))
 
             k_fold = 3
-            for k in range(3):
-                df_info_k_fold = df_info.copy()
-                df_info_k_fold["logit"] = np.nan
-                df_info_k_fold["predict"] = np.nan
-                df_info_k_fold["phase"] = "train"
-                df_info_k_fold.loc[df_info_k_fold.kfold==k, ['phase']] = 'val'
-                image_datasets = {
-                    "val": Dataset(
-                        df_info=df_info_k_fold[df_info_k_fold.phase=="val"], 
-                        folder_data=path_root,
-                        image_size=config_params["input_size"], 
-                        transforms=data_transforms["val"])
-                }
+            with pd.ExcelWriter(f'{path_weight_save} + /resnet_34_kfold_val_logits.xlsx') as writer:
+                for k in range(3):
+                    dataframe_logits = []
+                    for information in informations:
+                        df_info_k_fold = information["dataframe"].copy()
+                        df_info_k_fold["domain_name"] = information["domain_name"]
+                        df_info_k_fold["logit"] = np.nan
+                        df_info_k_fold["predict"] = np.nan
+                        df_info_k_fold["phase"] = "train"
+                        df_info_k_fold.loc[df_info_k_fold.kfold==k, ['phase']] = 'val'
+                        
+                        image_datasets = {
+                            "val": Dataset(
+                                df_info=df_info_k_fold[df_info_k_fold.phase=="val"], 
+                                folder_data=path_root,
+                                image_size=config_params["input_size"], 
+                                transforms=data_transforms["val"])
+                        }
 
-                dataloaders_dict = {
-                    x: torch.utils.data.DataLoader(
-                        image_datasets[x],
-                        collate_fn=default_collate,
-                        batch_size=config_params["batch_size"], 
-                        shuffle=True, 
-                        num_workers=config_params["num_workers"]) for x in ['val']}
+                        dataloaders_dict = {
+                            x: torch.utils.data.DataLoader(
+                                image_datasets[x],
+                                collate_fn=default_collate,
+                                batch_size=config_params["batch_size"], 
+                                shuffle=True, 
+                                num_workers=config_params["num_workers"]) for x in ['val']}
 
-                model_ft = initialize_model(
-                    num_classes=number_classes,
-                    feature_extract=True, 
-                    use_pretrained=True
-                )
+                        model_ft = initialize_model(
+                            num_classes=number_classes,
+                            feature_extract=True, 
+                            use_pretrained=True
+                        )
 
-                path_weight = path_weight_save + f"resnet_34_kfold_{str(k)}.pth"
-                
-                model_ft.load_state_dict(
-                    torch.load(
-                        path_weight,
-                        map_location=torch.device(device=device)
-                    )
-                )
-                model_ft.eval()
-                model_ft = model_ft.to(device)
+                        path_weight = path_weight_save + f"resnet_34_kfold_{str(k)}.pth"
+                        
+                        model_ft.load_state_dict(
+                            torch.load(
+                                path_weight,
+                                map_location=torch.device(device=device)
+                            )
+                        )
+                        model_ft.eval()
+                        model_ft = model_ft.to(device)
 
+                        df_finish_pred = train_model(
+                            model_ft, dataloaders_dict, 
+                            folder_save=path_weight_save,
+                            k_fold=k
+                        )
 
-
-                df_finish_pred = train_model(
-                    model_ft, dataloaders_dict, 
-                    folder_save=path_weight_save,
-                    k_fold=k
-                )
-
-                dataframe_logits.append(df_finish_pred)
-            
-            dataframe_logits = pd.concat(dataframe_logits)
-            dataframe_logits.to_csv(
-                path_weight_save + f"/resnet_34_kfold_val_logits.csv", 
-                index=False
-            )
-            
+                        dataframe_logits.append(df_finish_pred)
+                    
+                    dataframe_logits = pd.concat(dataframe_logits)
+                    dataframe_logits.to_excel(writer, sheet_name=f'kfold_{k}')
