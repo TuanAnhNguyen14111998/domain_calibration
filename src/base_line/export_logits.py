@@ -112,6 +112,23 @@ if __name__ == "__main__":
             k_fold = 3
             with pd.ExcelWriter(f'{path_weight_save}/resnet_34_kfold_val_logits.xlsx') as writer:
                 for k in range(3):
+                    model_ft = initialize_model(
+                        num_classes=number_classes,
+                        feature_extract=True, 
+                        use_pretrained=True
+                    )
+
+                    path_weight = path_weight_save + f"resnet_34_kfold_{str(k)}.pth"
+                    
+                    model_ft.load_state_dict(
+                        torch.load(
+                            path_weight,
+                            map_location=torch.device(device=device)
+                        )
+                    )
+                    model_ft.eval()
+                    model_ft = model_ft.to(device)
+
                     dataframe_logits = []
                     for information in informations:
                         domain_name = information["domain_name"]
@@ -142,23 +159,6 @@ if __name__ == "__main__":
                                 batch_size=config_params["batch_size"], 
                                 shuffle=True, 
                                 num_workers=config_params["num_workers"]) for x in ['val']}
-
-                        model_ft = initialize_model(
-                            num_classes=number_classes,
-                            feature_extract=True, 
-                            use_pretrained=True
-                        )
-
-                        path_weight = path_weight_save + f"resnet_34_kfold_{str(k)}.pth"
-                        
-                        model_ft.load_state_dict(
-                            torch.load(
-                                path_weight,
-                                map_location=torch.device(device=device)
-                            )
-                        )
-                        model_ft.eval()
-                        model_ft = model_ft.to(device)
 
                         df_finish_pred = train_model(
                             model_ft, dataloaders_dict, 
