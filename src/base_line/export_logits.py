@@ -80,15 +80,9 @@ if __name__ == "__main__":
         for path_csv in all_csv_domain:
             domain_name = path_csv.split("/")[-1].replace("_kfold.csv", "")
 
-            print(f"Running on {dataset_name} with domain: {domain_name} .... ")
-            
+            # print(f"Running on {dataset_name} with domain: {domain_name} .... ")
             path_weight_save =\
                 f"/vinbrain/anhng/domain_adaptation/experiments/{dataset_name}/{domain_name}/"
-            
-            if dataset_name ==  "Office-Home":
-                path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/OfficeHomeDataset_10072016/{domain_name}/"
-            else:
-                path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/{domain_name}/images/"
 
             if not os.path.isdir(path_weight_save):
                 os.makedirs(path_weight_save)
@@ -120,8 +114,14 @@ if __name__ == "__main__":
                 for k in range(3):
                     dataframe_logits = []
                     for information in informations:
+                        domain_name = information["domain_name"]
+                        if dataset_name ==  "Office-Home":
+                            path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/OfficeHomeDataset_10072016/{domain_name}/"
+                        else:
+                            path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/{domain_name}/images/"
+                        
                         df_info_k_fold = information["dataframe"].copy()
-                        df_info_k_fold["domain_name"] = information["domain_name"]
+                        df_info_k_fold["domain_name"] = domain_name
                         df_info_k_fold["logit"] = np.nan
                         df_info_k_fold["predict"] = np.nan
                         df_info_k_fold["phase"] = "train"
