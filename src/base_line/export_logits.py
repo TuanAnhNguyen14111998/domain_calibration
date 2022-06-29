@@ -40,7 +40,7 @@ def train_model(
     k_fold=0):
     
     df_finish_pred = pd.DataFrame()
-    for phase in ['val']:
+    for phase in ['train', 'val']:
         model.eval()
         for inputs, labels, records in tqdm(dataloaders[phase]):
             inputs = inputs.to(device)
@@ -88,6 +88,14 @@ if __name__ == "__main__":
                 os.makedirs(path_weight_save)
 
             data_transforms = {
+                'train': A.Compose([
+                    A.Resize(width=224, height=224),
+                    A.CenterCrop(width=224, height=224),
+                    A.Normalize(
+                        mean=(0.485, 0.456, 0.406), 
+                        std=(0.229, 0.224, 0.225)
+                    )
+                ]),
                 'val': A.Compose([
                     A.Resize(width=224, height=224),
                     A.CenterCrop(width=224, height=224),
@@ -145,6 +153,11 @@ if __name__ == "__main__":
                         df_info_k_fold.loc[df_info_k_fold.kfold==k, ['phase']] = 'val'
                         
                         image_datasets = {
+                            "train": Dataset(
+                                df_info=df_info_k_fold[df_info_k_fold.phase=="train"],
+                                folder_data=path_root,
+                                image_size=config_params["input_size"], 
+                                transforms=data_transforms["train"]),
                             "val": Dataset(
                                 df_info=df_info_k_fold[df_info_k_fold.phase=="val"], 
                                 folder_data=path_root,
@@ -158,7 +171,7 @@ if __name__ == "__main__":
                                 collate_fn=default_collate,
                                 batch_size=config_params["batch_size"], 
                                 shuffle=True, 
-                                num_workers=config_params["num_workers"]) for x in ['val']}
+                                num_workers=config_params["num_workers"]) for x in ['train', 'val']}
 
                         df_finish_pred = train_model(
                             model_ft, dataloaders_dict, 
