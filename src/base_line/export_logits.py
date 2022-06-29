@@ -83,7 +83,7 @@ if __name__ == "__main__":
             print(f"Running on {dataset_name} with domain: {domain_name} .... ")
             
             path_weight_save =\
-                f"/workspace/domain_calibration/experiments/{dataset_name}/{domain_name}/"
+                f"/vinbrain/anhng/domain_adaptation/experiments/{dataset_name}/{domain_name}/"
             
             if dataset_name ==  "Office-Home":
                 path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/OfficeHomeDataset_10072016/{domain_name}/"
@@ -116,7 +116,7 @@ if __name__ == "__main__":
             number_classes = len(set(informations[0]["dataframe"]["classes"]))
 
             k_fold = 3
-            with pd.ExcelWriter(f'{path_weight_save} + /resnet_34_kfold_val_logits.xlsx') as writer:
+            with pd.ExcelWriter(f'{path_weight_save}/resnet_34_kfold_val_logits.xlsx') as writer:
                 for k in range(3):
                     dataframe_logits = []
                     for information in informations:
