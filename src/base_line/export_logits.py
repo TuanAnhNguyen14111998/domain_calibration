@@ -80,7 +80,7 @@ if __name__ == "__main__":
         for path_csv in all_csv_domain:
             domain_name = path_csv.split("/")[-1].replace("_kfold.csv", "")
 
-            # print(f"Running on {dataset_name} with domain: {domain_name} .... ")
+            print(f"Running on {dataset_name} with domain: {domain_name} .... ")
             path_weight_save =\
                 f"/vinbrain/anhng/domain_adaptation/experiments/{dataset_name}/{domain_name}/"
 
