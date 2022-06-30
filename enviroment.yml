@@ -18,3 +18,4 @@ dependencies:
     - albumentations==0.4.6
     - pkbar==0.5
     - openpyxl
+    - pytorchtools
