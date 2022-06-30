@@ -35,16 +35,11 @@ def train_model(
     path_save = folder_save + f"/resnet_34_kfold_{k_fold}.pth"
     early_stopping = EarlyStopping(patience=7, verbose=True, path=path_save)
 
-    since = time.time()
-
     train_acc_history = []
     val_acc_history = []
 
     train_loss_history = []
     val_loss_history = []
-    
-    best_model_wts = copy.deepcopy(model.state_dict())
-    best_acc = 0.0
 
     for epoch in range(num_epochs):
         print('Training epoch {}/{}'.format(epoch, num_epochs - 1))
@@ -94,7 +89,6 @@ def train_model(
             print('\n{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
             
             if phase == 'val':
-                best_acc = epoch_acc
                 early_stopping(epoch_acc, model)
                 if early_stopping.early_stop:
                     print("Early stopping")
@@ -126,19 +120,10 @@ def train_model(
 
         print()
 
-    time_elapsed = time.time() - since
-    print('\nTraining complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
-    print('\nBest val Acc: {:4f}'.format(best_acc))
-
-    # load best model weights
-    model.load_state_dict(best_model_wts)
-    
-    return model, val_acc_history
-
 
 if __name__ == "__main__":
     config_params = {
-        "dataset_name": ["Office", "Office-Home"],
+        "dataset_name": ["Bing-Caltech"],
         "input_size": 256,
         "batch_size": 132,
         "num_workers": 4,
@@ -170,7 +155,7 @@ if __name__ == "__main__":
                 if dataset_name ==  "Office-Home":
                     path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/OfficeHomeDataset_10072016/{domain_name}/"
                 elif dataset_name == "Bing-Caltech":
-                    path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}h/BingLarge_C256_deduped/"
+                    path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/BingLarge_C256_deduped/"
                 else:
                     path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/{domain_name}/images/"
 
