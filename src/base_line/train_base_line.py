@@ -89,34 +89,33 @@ def train_model(
             print('\n{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
             
             if phase == 'val':
+                if not os.path.isfile(folder_save + f"/resnet_34_kfold_{k_fold}_val_history.txt"):
+                    f = open(folder_save + f"/resnet_34_kfold_{k_fold}_val_history.txt", "a")
+                    f.write("epoch_loss, epoch_acc")
+                    f.close()
+                else:
+                    val_loss_history.append(epoch_loss)
+                    val_acc_history.append(epoch_acc)
+                    f = open(folder_save + f"/resnet_34_kfold_{k_fold}_val_history.txt", "a")
+                    f.write("\n" + str(epoch_loss) + ", " + str(epoch_acc.item()))
+                    f.close()
+
                 early_stopping(epoch_acc, model)
                 if early_stopping.early_stop:
                     print("Early stopping")
-                break
-
-            if not os.path.isfile(folder_save + f"/resnet_34_kfold_{k_fold}_train_history.txt"):
-                f = open(folder_save + f"/resnet_34_kfold_{k_fold}_train_history.txt", "a")
-                f.write("epoch_loss, epoch_acc")
-                f.close()
-            
-            if not os.path.isfile(folder_save + f"/resnet_34_kfold_{k_fold}_val_history.txt"):
-                f = open(folder_save + f"/resnet_34_kfold_{k_fold}_val_history.txt", "a")
-                f.write("epoch_loss, epoch_acc")
-                f.close()
+                    break
 
             if phase == "train":
-                train_loss_history.append(epoch_loss)
-                train_acc_history.append(epoch_acc)
-                f = open(folder_save + f"/resnet_34_kfold_{k_fold}_train_history.txt", "a")
-                f.write("\n" + str(epoch_loss) + ", " + str(epoch_acc.item()))
-                f.close()
-            
-            if phase == 'val':
-                val_loss_history.append(epoch_loss)
-                val_acc_history.append(epoch_acc)
-                f = open(folder_save + f"/resnet_34_kfold_{k_fold}_val_history.txt", "a")
-                f.write("\n" + str(epoch_loss) + ", " + str(epoch_acc.item()))
-                f.close()
+                if not os.path.isfile(folder_save + f"/resnet_34_kfold_{k_fold}_train_history.txt"):
+                    f = open(folder_save + f"/resnet_34_kfold_{k_fold}_train_history.txt", "a")
+                    f.write("epoch_loss, epoch_acc")
+                    f.close()
+                else:
+                    train_loss_history.append(epoch_loss)
+                    train_acc_history.append(epoch_acc)
+                    f = open(folder_save + f"/resnet_34_kfold_{k_fold}_train_history.txt", "a")
+                    f.write("\n" + str(epoch_loss) + ", " + str(epoch_acc.item()))
+                    f.close()
 
         print()
 
@@ -239,7 +238,7 @@ if __name__ == "__main__":
                     criterion = nn.CrossEntropyLoss()
 
                     # Train and evaluate
-                    model_ft, hist = train_model(
+                    train_model(
                         model_ft, dataloaders_dict, 
                         criterion, optimizer_ft, 
                         num_epochs=config_params["number_epochs"],
