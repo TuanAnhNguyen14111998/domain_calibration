@@ -33,7 +33,7 @@ def train_model(
     k_fold=0):
     
     path_save = folder_save + f"/resnet_34_kfold_{k_fold}.pth"
-    early_stopping = EarlyStopping(patience=7, verbose=True, path=path_save)
+    early_stopping = EarlyStopping(patience=4, verbose=True, path=path_save)
 
     train_acc_history = []
     val_acc_history = []
@@ -128,7 +128,7 @@ if __name__ == "__main__":
         "num_workers": 4,
         "learning_rate": 0.001,
         "beta": (0.9,0.999),
-        "number_epochs": 120,
+        "number_epochs": 50,
     }
     
     for dataset_name in config_params["dataset_name"]:
