@@ -92,6 +92,7 @@ def train_model(
                 if not os.path.isfile(folder_save + f"/resnet_34_kfold_{k_fold}_val_history.txt"):
                     f = open(folder_save + f"/resnet_34_kfold_{k_fold}_val_history.txt", "a")
                     f.write("epoch_loss, epoch_acc")
+                    f.write("\n" + str(epoch_loss) + ", " + str(epoch_acc.item()))
                     f.close()
                 else:
                     val_loss_history.append(epoch_loss)
@@ -109,6 +110,7 @@ def train_model(
                 if not os.path.isfile(folder_save + f"/resnet_34_kfold_{k_fold}_train_history.txt"):
                     f = open(folder_save + f"/resnet_34_kfold_{k_fold}_train_history.txt", "a")
                     f.write("epoch_loss, epoch_acc")
+                    f.write("\n" + str(epoch_loss) + ", " + str(epoch_acc.item()))
                     f.close()
                 else:
                     train_loss_history.append(epoch_loss)
