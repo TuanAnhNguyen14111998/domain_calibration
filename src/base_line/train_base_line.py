@@ -124,7 +124,7 @@ def train_model(
 
 if __name__ == "__main__":
     config_params = {
-        "dataset_name": ["Bing-Caltech"],
+        "dataset_name": ["Domain-net"],
         "input_size": 256,
         "batch_size": 132,
         "num_workers": 4,
@@ -145,7 +145,7 @@ if __name__ == "__main__":
                 f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/information/"
 
         for path_csv in glob.glob(path_information + "/*.csv"):
-            if path_csv.endswith("bing_caltech_kfold.csv"):
+            if path_csv.endswith("clipart_kfold.csv"):
                 domain_name = path_csv.split("/")[-1].replace("_kfold.csv", "")
 
                 print(f"Running on {dataset_name} with domain: {domain_name} .... ")
@@ -157,6 +157,8 @@ if __name__ == "__main__":
                     path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/OfficeHomeDataset_10072016/{domain_name}/"
                 elif dataset_name == "Bing-Caltech":
                     path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/BingLarge_C256_deduped/"
+                elif dataset_name == "Domain-net":
+                    path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/{domain_name}/"
                 else:
                     path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/{domain_name}/images/"
 
