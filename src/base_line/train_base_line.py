@@ -38,7 +38,7 @@ def get_agument(augment_name):
                 A.CenterCrop(width=224, height=224),
             )
         if augment == "Flip":
-            list_augment.apend(
+            list_augment.append(
                 A.Flip(always_apply=False, p=1.0)
             )
         if augment == "Blur":
