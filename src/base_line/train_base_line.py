@@ -164,7 +164,6 @@ def train_model(
 
 if __name__ == "__main__":
     config_params = load_from_yaml("./configs/exp.yaml")
-
     for dataset_name in config_params["dataset_name"]:
         if dataset_name == "Office-Home":
             path_information =\
@@ -188,6 +187,8 @@ if __name__ == "__main__":
                     path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/OfficeHomeDataset_10072016/{domain_name}/"
                 elif dataset_name == "Bing-Caltech":
                     path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/BingLarge_C256_deduped/"
+                elif dataset_name == "Domain-net":
+                    path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/{domain_name}/"
                 else:
                     path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/{domain_name}/images/"
 
@@ -224,7 +225,7 @@ if __name__ == "__main__":
                                 input_size=config_params["input_size"],
                                 transforms=data_transforms["val"]),
                         }
-                        
+
                         dataloaders_dict = {
                             x: torch.utils.data.DataLoader(
                                 image_datasets[x], 
