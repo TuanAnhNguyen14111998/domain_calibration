@@ -167,7 +167,6 @@ def train_model(
 
 if __name__ == "__main__":
     config_params = load_from_yaml("./configs/exp.yaml")
-    import pdb; pdb.set_trace()
     for dataset_name in config_params["dataset_name"]:
         if dataset_name == "Office-Home":
             path_information =\
