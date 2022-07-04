@@ -12,6 +12,8 @@ batch_size: 132
 num_workers: 4
 learning_rate: 0.001
 number_epochs: 50
+patience: 7
+path_data: /raid/anhng/domain-adaptation/
 train_augment:
   - CenterCrop
   - Flip

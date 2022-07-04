@@ -70,10 +70,11 @@ def train_model(
     model, dataloaders, criterion, 
     optimizer, num_epochs=25, 
     folder_save="./experiments/", 
-    k_fold=0):
+    k_fold=0,
+    patience=10):
     
     path_save = folder_save + f"/resnet_34_kfold_{k_fold}.pth"
-    early_stopping = EarlyStopping(patience=10, verbose=True, path=path_save)
+    early_stopping = EarlyStopping(patience=patience, verbose=True, path=path_save)
 
     train_acc_history = []
     val_acc_history = []
@@ -143,7 +144,7 @@ def train_model(
 
                 early_stopping(epoch_acc, model)
                 if early_stopping.early_stop:
-                    print("Early stopping")
+                    print("Early stopping ... ")
                     break
 
             if phase == "train":
@@ -167,13 +168,13 @@ if __name__ == "__main__":
     for dataset_name in config_params["dataset_name"]:
         if dataset_name == "Office-Home":
             path_information =\
-                f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/OfficeHomeDataset_10072016/information/"
+                f"{config_params['path_data']}/{dataset_name}/OfficeHomeDataset_10072016/information/"
         elif dataset_name == "Bing-Caltech":
             path_information =\
-                f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/information/"
+                f"{config_params['path_data']}/{dataset_name}/information/"
         else:
             path_information =\
-                f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/information/"
+                f"{config_params['path_data']}/{dataset_name}/information/"
 
         for path_csv in glob.glob(path_information + "/*.csv"):
             domain_name = path_csv.split("/")[-1].replace("_kfold.csv", "")
@@ -184,13 +185,13 @@ if __name__ == "__main__":
                     f"/vinbrain/anhng/domain_adaptation/experiments/{dataset_name}/{domain_name}/"
                 
                 if dataset_name ==  "Office-Home":
-                    path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/OfficeHomeDataset_10072016/{domain_name}/"
+                    path_root = f"{config_params['path_data']}/{dataset_name}/OfficeHomeDataset_10072016/{domain_name}/"
                 elif dataset_name == "Bing-Caltech":
-                    path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/BingLarge_C256_deduped/"
+                    path_root = f"{config_params['path_data']}/{dataset_name}/BingLarge_C256_deduped/"
                 elif dataset_name == "Domain-net":
-                    path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/{domain_name}/"
+                    path_root = f"{config_params['path_data']}/{dataset_name}/{domain_name}/"
                 else:
-                    path_root = f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/{domain_name}/images/"
+                    path_root = f"{config_params['path_data']}/{dataset_name}/{domain_name}/images/"
 
                 if not os.path.isdir(path_weight_save):
                     os.makedirs(path_weight_save)
@@ -263,6 +264,7 @@ if __name__ == "__main__":
                             criterion, optimizer_ft, 
                             num_epochs=config_params["number_epochs"],
                             folder_save=path_weight_save,
-                            k_fold=k
+                            k_fold=k,
+                            patience=config_params["patience"]
                         )
     
