@@ -251,16 +251,16 @@ if __name__ == "__main__":
                                 params_to_update.append(param)
                                 print("\t",name)
 
-                        optimizer_ft = optim.Adam(
-                            params_to_update,
-                            lr=float(config_params["learning_rate"]),
-                            betas=(0.9,0.999),
-                            eps=1e-08,
-                            weight_decay=0,
-                            amsgrad=False
-                        )
                         criterion = nn.CrossEntropyLoss()
                         if config_params["get_learning_rate"]:
+                            optimizer_ft = optim.Adam(
+                                params_to_update,
+                                lr=float(config_params["learning_rate_init"]),
+                                betas=(0.9,0.999),
+                                eps=1e-08,
+                                weight_decay=0,
+                                amsgrad=False
+                            )
                             lr_finder = LRFinder(
                                 model_ft, optimizer_ft, 
                                 criterion, device="cuda"
@@ -275,6 +275,14 @@ if __name__ == "__main__":
                             )
                             break
                         
+                        optimizer_ft = optim.Adam(
+                            params_to_update,
+                            lr=float(config_params["learning_rate_optimize"]),
+                            betas=(0.9,0.999),
+                            eps=1e-08,
+                            weight_decay=0,
+                            amsgrad=False
+                        )
                         train_model(
                             model_ft, dataloaders_dict, 
                             criterion, optimizer_ft, 
