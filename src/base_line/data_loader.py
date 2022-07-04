@@ -23,10 +23,12 @@ def image_resize(image, width = None, height = None, inter = cv2.INTER_AREA):
 
 
 class Dataset(data.Dataset):
-    def __init__(self, df_info, folder_data, image_size, transforms=None):
+    def __init__(self, df_info, folder_data, image_size_ratio, 
+                input_size, transforms=None):
         self.df_info = df_info
         self.folder_data = folder_data
-        self.image_size = image_size
+        self.image_size_ratio = image_size_ratio
+        self.input_size = input_size
         self.transforms = transforms
 
     def __len__(self):
@@ -42,7 +44,9 @@ class Dataset(data.Dataset):
         image_path = self.folder_data + "/" + image_id.split("__")[0] + f"/{image_name}"
 
         image = cv2.imread(image_path)
-        image = image_resize(image, width=self.image_size, height=self.image_size)
+        image = image_resize(image, width=self.image_size_ratio, height=self.image_size_ratio)
+        if image.shape[0] < 224 and image.shape[0] < 224:
+            image = cv2.resize(image, (self.input_size, self.input_size), interpolation = cv2.INTER_AREA)
 
         if self.transforms:
             sample = {

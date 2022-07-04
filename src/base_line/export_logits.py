@@ -34,7 +34,7 @@ def default_collate(batch):
     return images, labels, records
 
 
-def train_model(
+def export_logits(
     model, dataloaders, 
     folder_save="./experiments/", 
     k_fold=0):
@@ -173,7 +173,7 @@ if __name__ == "__main__":
                                 shuffle=True, 
                                 num_workers=config_params["num_workers"]) for x in ['train', 'val']}
 
-                        df_finish_pred = train_model(
+                        df_finish_pred = export_logits(
                             model_ft, dataloaders_dict, 
                             folder_save=path_weight_save,
                             k_fold=k

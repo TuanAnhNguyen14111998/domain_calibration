@@ -1,11 +1,13 @@
+from distutils.command import config
+from matplotlib import transforms
 import torch
 import albumentations as A
 import pandas as pd
 import torch.optim as optim
 import torch.nn as nn
-import time
-import copy
+import pkbar
 import glob
+import yaml
 
 import os
 import sys
@@ -23,8 +25,46 @@ from src.base_line.early_stopping import EarlyStopping
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+def load_from_yaml(fname):
+    with open(fname, encoding='utf-8') as f:
+        base_config = yaml.safe_load(f)
+    return base_config
 
-import pkbar
+def get_agument(augment_name):
+    list_augment = []
+    for augment in augment_name:
+        if augment == "CenterCrop":
+            list_augment.append(
+                A.CenterCrop(width=224, height=224),
+            )
+        if augment == "Flip":
+            list_augment.apend(
+                A.Flip(always_apply=False, p=1.0)
+            )
+        if augment == "Blur":
+            list_augment.append(
+                A.Blur(always_apply=False, p=0.5, blur_limit=(3, 7))
+            )
+        if augment == "GaussNoise":
+            list_augment.append(
+                A.GaussNoise(always_apply=False, p=0.5, var_limit=(10.0, 50.0))
+            )
+        if augment == "RandomBrightness":
+            list_augment.append(
+                A.RandomBrightness(
+                    always_apply=False, p=0.5, 
+                    limit=(-0.20000000298023224, 0.20000000298023224))
+            )
+        if augment == "Normalize":
+            list_augment.append(
+                A.Normalize(
+                    mean=(0.485, 0.456, 0.406), 
+                    std=(0.229, 0.224, 0.225)
+                )
+            )
+
+    return A.Compose(list_augment) 
+
 
 def train_model(
     model, dataloaders, criterion, 
@@ -33,7 +73,7 @@ def train_model(
     k_fold=0):
     
     path_save = folder_save + f"/resnet_34_kfold_{k_fold}.pth"
-    early_stopping = EarlyStopping(patience=4, verbose=True, path=path_save)
+    early_stopping = EarlyStopping(patience=10, verbose=True, path=path_save)
 
     train_acc_history = []
     val_acc_history = []
@@ -43,7 +83,7 @@ def train_model(
 
     for epoch in range(num_epochs):
         print('Training epoch {}/{}'.format(epoch, num_epochs - 1))
-        print('-' * 50)
+        print('-' * 100)
         
         for phase in ['train', 'val']:
             if phase == 'train':
@@ -123,16 +163,8 @@ def train_model(
 
 
 if __name__ == "__main__":
-    config_params = {
-        "dataset_name": ["Bing-Caltech"],
-        "input_size": 256,
-        "batch_size": 132,
-        "num_workers": 4,
-        "learning_rate": 0.001,
-        "beta": (0.9,0.999),
-        "number_epochs": 50,
-    }
-    
+    config_params = load_from_yaml("./configs/exp.yaml")
+
     for dataset_name in config_params["dataset_name"]:
         if dataset_name == "Office-Home":
             path_information =\
@@ -145,11 +177,10 @@ if __name__ == "__main__":
                 f"/vinbrain/anhng/domain_adaptation/datasets/{dataset_name}/information/"
 
         for path_csv in glob.glob(path_information + "/*.csv"):
-            if path_csv.endswith("bing_caltech_kfold.csv"):
-                domain_name = path_csv.split("/")[-1].replace("_kfold.csv", "")
-
+            domain_name = path_csv.split("/")[-1].replace("_kfold.csv", "")
+            if domain_name in config_params["domain_name"]:
                 print(f"Running on {dataset_name} with domain: {domain_name} .... ")
-                
+
                 path_weight_save =\
                     f"/vinbrain/anhng/domain_adaptation/experiments/{dataset_name}/{domain_name}/"
                 
@@ -162,89 +193,75 @@ if __name__ == "__main__":
 
                 if not os.path.isdir(path_weight_save):
                     os.makedirs(path_weight_save)
-
+                
                 data_transforms = {
-                    'train': A.Compose([
-                        A.RandomResizedCrop(width=224, height=224),
-                        A.HorizontalFlip(p=0.5),
-                        A.Normalize(
-                            mean=(0.485, 0.456, 0.406), 
-                            std=(0.229, 0.224, 0.225)
-                        )
-                    ]),
-                    'val': A.Compose([
-                        A.Resize(width=224, height=224),
-                        A.CenterCrop(width=224, height=224),
-                        A.Normalize(
-                            mean=(0.485, 0.456, 0.406), 
-                            std=(0.229, 0.224, 0.225)
-                        )
-                    ])
+                    'train': get_agument(config_params["train_augment"]),
+                    'val': get_agument(config_params["val_augment"])
                 }
 
                 print("Initializing Datasets and Dataloaders...")
                 df_info = pd.read_csv(path_csv)
-                
+
                 number_classes = len(set(df_info["classes"]))
 
                 k_fold = 3
                 for k in range(3):
-                    df_info_k_fold = df_info.copy()
-                    df_info_k_fold["phase"] = "train"
-                    df_info_k_fold.loc[df_info_k_fold.kfold==k, ['phase']] = 'val'
-                    image_datasets = {
-                        "train": Dataset(
-                            df_info=df_info_k_fold[df_info_k_fold.phase=="train"],
-                            folder_data=path_root,
-                            image_size=config_params["input_size"], 
-                            transforms=data_transforms["train"]),
-                        "val": Dataset(
-                            df_info=df_info_k_fold[df_info_k_fold.phase=="val"], 
-                            folder_data=path_root,
-                            image_size=config_params["input_size"], 
-                            transforms=data_transforms["val"]),
+                    if k in config_params["kfold_exp"]:
+                        df_info_k_fold = df_info.copy()
+                        df_info_k_fold["phase"] = "train"
+                        df_info_k_fold.loc[df_info_k_fold.kfold==k, ['phase']] = 'val'
+                        image_datasets = {
+                            "train": Dataset(
+                                df_info=df_info_k_fold[df_info_k_fold.phase=="train"],
+                                folder_data=path_root,
+                                image_size_ratio=config_params["image_size_ratio"], 
+                                input_size=config_params["input_size"], 
+                                transforms=data_transforms["train"]),
+                            "val": Dataset(
+                                df_info=df_info_k_fold[df_info_k_fold.phase=="val"], 
+                                folder_data=path_root,
+                                image_size_ratio=config_params["image_size_ratio"], 
+                                input_size=config_params["input_size"],
+                                transforms=data_transforms["val"]),
+                        }
+                        
+                        dataloaders_dict = {
+                            x: torch.utils.data.DataLoader(
+                                image_datasets[x], 
+                                batch_size=config_params["batch_size"], 
+                                shuffle=True, 
+                                num_workers=config_params["num_workers"]) for x in ['train', 'val']}
 
-                    }
+                        model_ft = initialize_model(
+                            num_classes=number_classes,
+                            feature_extract=True, 
+                            use_pretrained=True
+                        )
+                        model_ft = model_ft.to(device)
 
-                    dataloaders_dict = {
-                        x: torch.utils.data.DataLoader(
-                            image_datasets[x], 
-                            batch_size=config_params["batch_size"], 
-                            shuffle=True, 
-                            num_workers=config_params["num_workers"]) for x in ['train', 'val']}
+                        params_to_update = model_ft.parameters()
+                        print("Params to learn:")
+                        params_to_update = []
+                        for name,param in model_ft.named_parameters():
+                            if param.requires_grad == True:
+                                params_to_update.append(param)
+                                print("\t",name)
 
-                    model_ft = initialize_model(
-                        num_classes=number_classes,
-                        feature_extract=True, 
-                        use_pretrained=True
-                    )
-                    model_ft = model_ft.to(device)
+                        optimizer_ft = optim.Adam(
+                            params_to_update,
+                            lr=config_params["learning_rate"],
+                            betas=(0.9,0.999),
+                            eps=1e-08,
+                            weight_decay=0,
+                            amsgrad=False
+                        )
 
-                    params_to_update = model_ft.parameters()
-                    print("Params to learn:")
-                    params_to_update = []
-                    for name,param in model_ft.named_parameters():
-                        if param.requires_grad == True:
-                            params_to_update.append(param)
-                            print("\t",name)
-
-                    optimizer_ft = optim.Adam(
-                        params_to_update,
-                        lr=config_params["learning_rate"],
-                        betas=config_params["beta"],
-                        eps=1e-08,
-                        weight_decay=0,
-                        amsgrad=False
-                    )
-
-                    criterion = nn.CrossEntropyLoss()
-
-                    # Train and evaluate
-                    train_model(
-                        model_ft, dataloaders_dict, 
-                        criterion, optimizer_ft, 
-                        num_epochs=config_params["number_epochs"],
-                        folder_save=path_weight_save,
-                        k_fold=k
-                    )
+                        criterion = nn.CrossEntropyLoss()
+                        train_model(
+                            model_ft, dataloaders_dict, 
+                            criterion, optimizer_ft, 
+                            num_epochs=config_params["number_epochs"],
+                            folder_save=path_weight_save,
+                            k_fold=k
+                        )
     

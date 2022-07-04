@@ -8,7 +8,7 @@ import albumentations as A
 def set_parameter_requires_grad(model, feature_extracting):
     if feature_extracting:
         for param in model.parameters():
-            param.requires_grad = False
+            param.requires_grad = True
 
 def initialize_model(num_classes, feature_extract, use_pretrained=True):
     model_ft = models.resnet18(pretrained=use_pretrained)
