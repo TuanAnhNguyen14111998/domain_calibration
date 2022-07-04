@@ -41,7 +41,7 @@ def get_agument(augment_name):
             )
         if augment == "Flip":
             list_augment.append(
-                A.Flip(always_apply=False, p=1.0)
+                A.Flip(always_apply=False, p=0.5)
             )
         if augment == "Blur":
             list_augment.append(
