@@ -8,6 +8,8 @@ import torch.nn as nn
 import pkbar
 import glob
 import yaml
+from torch_lr_finder import LRFinder,\
+    TrainDataLoaderIter, ValDataLoaderIter
 
 import os
 import sys
@@ -165,6 +167,7 @@ def train_model(
 
 if __name__ == "__main__":
     config_params = load_from_yaml("./configs/exp.yaml")
+    import pdb; pdb.set_trace()
     for dataset_name in config_params["dataset_name"]:
         if dataset_name == "Office-Home":
             path_information =\
@@ -251,14 +254,28 @@ if __name__ == "__main__":
 
                         optimizer_ft = optim.Adam(
                             params_to_update,
-                            lr=config_params["learning_rate"],
+                            lr=float(config_params["learning_rate"]),
                             betas=(0.9,0.999),
                             eps=1e-08,
                             weight_decay=0,
                             amsgrad=False
                         )
-
                         criterion = nn.CrossEntropyLoss()
+                        if config_params["get_learning_rate"]:
+                            lr_finder = LRFinder(
+                                model_ft, optimizer_ft, 
+                                criterion, device="cuda"
+                            )
+                            lr_finder.range_test(
+                                dataloaders_dict["train"], end_lr=100, 
+                                num_iter=100, step_mode="exp"
+                            )
+                            figure = lr_finder.plot()
+                            figure[0].figure.savefig(
+                                path_weight_save + "/lr_finder.png"
+                            )
+                            break
+                        
                         train_model(
                             model_ft, dataloaders_dict, 
                             criterion, optimizer_ft, 

@@ -10,10 +10,11 @@ image_size_ratio: 256
 input_size: 224
 batch_size: 132
 num_workers: 4
-learning_rate: 0.001
+learning_rate: 1e-7
 number_epochs: 50
 patience: 7
 path_data: /raid/anhng/domain-adaptation/
+get_learning_rate: True
 train_augment:
   - CenterCrop
   - Flip
