@@ -159,9 +159,9 @@ def train_temp_scaling(df, type_loss = 'entropy',
             best_T = Net_.temperature.item()
     
     # write Best T
-    f = open(f'{path_save}' + f"/{type_loss}_{type_ece}_kfold_{k_fold}_temperature_checkpoint.txt", "a")
+    f = open(f'{path_save}' + f"/{type_loss}_{type_ece}_kfold_{k_fold}_temperature_checkpoint.txt", "w")
     f.write(str(best_T))
-    f = open(f'{path_save}' + f"/{type_loss}_{type_ece}_kfold_{k_fold}_valid.txt", "a")
+    f = open(f'{path_save}' + f"/{type_loss}_{type_ece}_kfold_{k_fold}_valid.txt", "w")
     f.write(str(best_ece))
     f.close()
 
