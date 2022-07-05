@@ -184,7 +184,7 @@ if __name__ == "__main__":
                 print(f"Running on {dataset_name} with domain: {domain_name} .... ")
 
                 path_weight_save =\
-                    f"/vinbrain/anhng/domain_adaptation/experiments/{dataset_name}/{domain_name}/"
+                    f"{config_params['path_save']}/{dataset_name}/{domain_name}/"
                 
                 if dataset_name ==  "Office-Home":
                     path_root = f"{config_params['path_data']}/{dataset_name}/OfficeHomeDataset_10072016/{domain_name}/"
