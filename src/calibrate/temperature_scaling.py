@@ -9,6 +9,7 @@ import json
 import yaml
 import glob
 import os
+import matplotlib.pyplot as plt
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -164,6 +165,18 @@ def train_temp_scaling(df, type_loss = 'entropy',
     f.write(str(best_ece))
     f.close()
 
+    figure = plt.gcf() 
+    figure.set_size_inches(8, 6)
+    fig, ax = plt.subplots(1,3, figsize = (8, 4))
+    ax[0].plot(losses)
+    ax[0].set_title('train loss')
+    ax[1].plot(eces)
+    ax[1].set_title('valid ece')
+    ax[2].plot(Ts)
+    ax[2].set_title('T update')
+    plt.savefig(f'{path_save}' + f"/monitor_{type_loss}_kfold_{k_fold}.png")
+
+
 if __name__ == "__main__":
     config_params = load_from_yaml("./configs/exp.yaml")
 
@@ -184,7 +197,7 @@ if __name__ == "__main__":
 
             print(f"Running on {dataset_name} with domain: {main_domain} .... ")
             path_save =\
-                f"/vinbrain/anhng/domain_adaptation/experiments/{dataset_name}/{main_domain}/"
+                f"{config_params['path_save']}/{dataset_name}/{main_domain}/"
             
             if not os.path.isdir(path_save):
                 os.makedirs(path_save)
