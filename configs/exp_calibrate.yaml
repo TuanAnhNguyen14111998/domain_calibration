@@ -1,8 +1,0 @@
-dataset_name: 
-  - Domain-net
-domain_name:
-  - painting
-kfold_exp:
-  - 0
-  - 1
-  - 2

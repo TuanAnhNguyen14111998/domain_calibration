@@ -1,0 +1,6 @@
+dataset_name: 
+  - Office-Home
+kfold_exp:
+  - 0
+path_data: /workspace/raid/tientran/
+path_save: /vinbrain/tientran/feedbackloop/Calibrate_temp/research/domain_calibration/experiments/

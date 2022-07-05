@@ -1,0 +1,26 @@
+dataset_name: 
+  - Office
+domain_name:
+  - webcam
+kfold_exp:
+  - 0
+image_size_ratio: 256
+input_size: 224
+batch_size: 132
+num_workers: 4
+learning_rate_init: 1e-7
+learning_rate_optimize: 1.23e-03
+number_epochs: 50
+patience: 7
+path_data: /workspace/raid/tientran/
+get_learning_rate: False
+train_augment:
+  - CenterCrop
+  - Flip
+  - Blur
+  - GaussNoise
+  - RandomBrightness
+  - Normalize
+val_augment:
+  - CenterCrop
+  - Normalize

@@ -1,21 +1,19 @@
 dataset_name: 
-  - Domain-net
+  - Office-Home
 domain_name:
-  - painting
+  - Clipart
 kfold_exp:
   - 0
-  - 1
-  - 2
 image_size_ratio: 256
 input_size: 224
 batch_size: 132
 num_workers: 4
 learning_rate_init: 1e-7
-learning_rate_optimize: 1e-7
+learning_rate_optimize: 1.23e-03
 number_epochs: 50
 patience: 7
-path_data: /raid/anhng/domain-adaptation/
-get_learning_rate: True
+path_data: /workspace/raid/tientran/
+get_learning_rate: False
 train_augment:
   - CenterCrop
   - Flip
