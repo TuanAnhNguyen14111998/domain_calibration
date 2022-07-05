@@ -80,7 +80,7 @@ def export_logits(
     model, dataloaders, 
     export_main_domain=True):
     
-    df_finish_pred = pd.DataFrame()
+    list_df = []
     if export_main_domain:
         phases = ['train', 'val']
     else:
@@ -93,12 +93,12 @@ def export_logits(
             labels = labels.to(device)
             outputs = model(inputs)
             _, preds = torch.max(outputs, 1)
-            for index, pred in enumerate(preds):
-                records[index]["logit"] = list(outputs[index].cpu().detach().numpy())
-                records[index]["predict"] = int(pred.cpu().detach().numpy())
-                df_finish_pred = df_finish_pred.append(records[index])
-
-    return df_finish_pred
+            df = pd.DataFrame(records)
+            df["logit"] = list(outputs.cpu().detach().numpy())
+            df["predict"] = list(preds.cpu().detach().numpy())
+            list_df.append(df)
+    
+    return pd.concat(list_df)
 
 
 if __name__ == "__main__":
