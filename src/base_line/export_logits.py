@@ -121,7 +121,7 @@ if __name__ == "__main__":
 
             print(f"Running on {dataset_name} with domain: {main_domain} .... ")
             path_weight_save =\
-                f"/vinbrain/anhng/domain_adaptation/experiments/{dataset_name}/{main_domain}/"
+                f"{config_params['path_save']}/{dataset_name}/{main_domain}/"
 
             if not os.path.isdir(path_weight_save):
                 os.makedirs(path_weight_save)
