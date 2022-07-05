@@ -94,8 +94,8 @@ def export_logits(
             outputs = model(inputs)
             _, preds = torch.max(outputs, 1)
             df = pd.DataFrame(records)
-            df["logit"] = list(outputs.cpu().detach().numpy())
-            df["predict"] = list(preds.cpu().detach().numpy())
+            df["logit"] = outputs.cpu().detach().numpy().tolist()
+            df["predict"] = preds.cpu().detach().numpy().tolist()
             list_df.append(df)
     
     return pd.concat(list_df)
@@ -218,4 +218,4 @@ if __name__ == "__main__":
                             dataframe_logits.append(df_finish_pred)
                         
                         dataframe_logits = pd.concat(dataframe_logits)
-                        dataframe_logits.to_excel(writer, sheet_name=f'kfold_{k}')
+                        dataframe_logits.to_excel(writer, sheet_name=f'kfold_{k}', index=False)
