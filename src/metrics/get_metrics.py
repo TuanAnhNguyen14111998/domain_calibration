@@ -119,7 +119,7 @@ def report_result_acc(dictionary_metrics, path_save, train=True):
         dictionary['Standard Deviation'].append(std_values)
         dictionary['Fold-1'].append(optimize_values[0])
         dictionary['Fold-2'].append(optimize_values[1])
-        dictionary['Fold-3'].append(optimize_values[1])
+        dictionary['Fold-3'].append(optimize_values[2])
     
     pd.DataFrame(dictionary).to_csv(path_save, index=False)
 
