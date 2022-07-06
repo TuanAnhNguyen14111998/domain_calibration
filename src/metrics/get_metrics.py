@@ -241,8 +241,14 @@ def caculate_ece_calibrate(df, domain_names, T, type_calibration="ece"):
         
         val_logits = np.vstack([json.loads(x) for x in df[condition]['logit'].values])
         val_ground_truth = df[condition]["classes"].values
-        confidences_all = torch.softmax(torch.from_numpy(val_logits)/T, 1).numpy()
-        val_confidences, val_pred = torch.max(torch.softmax(torch.from_numpy(val_logits)/T, 1), 1)
+        if type(T) == list:
+            confidences_all = torch.softmax(torch.from_numpy(val_logits)*T[0] + T[1], 1).numpy()
+            val_confidences, val_pred = torch.max(
+                torch.softmax(torch.from_numpy(val_logits)*T[0] + T[1], 1), 1
+            )
+        else:
+            confidences_all = torch.softmax(torch.from_numpy(val_logits)/T, 1).numpy()
+            val_confidences, val_pred = torch.max(torch.softmax(torch.from_numpy(val_logits)/T, 1), 1)
         
         n_bins = 10
         if type_calibration == "ece":
@@ -295,9 +301,9 @@ def report_ece_not_calibrate(type_eces, path_save, kfold, domain_names):
                     pd.DataFrame(dictionary).to_excel(writer, sheet_name=f'kfold_{i}', index=False)
 
 
-def report_ece_calibrate(type_eces, type_loss, path_save, kfold, domain_names):
+def report_ece_calibrate_temperature(type_eces, type_loss, path_save, kfold, domain_names):
     for type_ece in type_eces:
-        with pd.ExcelWriter(f'{path_save}/{type_ece}_{type_loss}_calibrate_results_logits.xlsx') as writer:
+        with pd.ExcelWriter(f'{path_save}/{type_ece}_{type_loss}_calibrate_temperature_results_logits.xlsx') as writer:
             for i in range(3):
                 if i in kfold:
                     dictionary = {
@@ -321,6 +327,35 @@ def report_ece_calibrate(type_eces, type_loss, path_save, kfold, domain_names):
                     pd.DataFrame(dictionary).to_excel(writer, sheet_name=f'kfold_{i}', index=False)
 
 
+def report_ece_calibrate_platt(type_eces, type_loss, path_save, kfold, domain_names):
+    for type_ece in type_eces:
+        with pd.ExcelWriter(f'{path_save}/{type_ece}_{type_loss}_calibrate_platscaling_results_logits.xlsx') as writer:
+            for i in range(3):
+                if i in kfold:
+                    dictionary = {
+                        "Domain Name": [],
+                    }
+
+                    for domain_name in domain_names:
+                        dictionary[domain_name] = []
+
+                    for domain_name in domain_names:
+                        path_excel = f"{config_params['path_save']}/{dataset_name}/{domain_name}/resnet_34_kfold_val_logits.xlsx"
+                        dictionary['Domain Name'].append(domain_name)
+                        df = pd.read_excel(path_excel, sheet_name=f"kfold_{i}")
+                        file = open(f"{config_params['path_save']}/{dataset_name}/{domain_name}/{type_loss}_origin_kfold_{i}_platscaling_checkpoint.txt")
+                        list_weight = json.loads(file.read())
+                        ece_values = caculate_ece_calibrate(
+                            df, domain_names, list_weight, 
+                            type_calibration=type_ece
+                        )
+
+                        for name in domain_names:
+                            dictionary[name].append(ece_values[name])
+                    
+                    pd.DataFrame(dictionary).to_excel(writer, sheet_name=f'kfold_{i}', index=False)
+
+
 def report_ece(config_params):
     dataset_name = config_params["dataset_name"]
     domain_names = config_params["domain_names"]
@@ -336,7 +371,11 @@ def report_ece(config_params):
     
     type_losses = ["entropy", "both"]
     for type_loss in type_losses:
-        report_ece_calibrate(type_eces, type_loss, path_save, kfold, domain_names)
+        report_ece_calibrate_temperature(type_eces, type_loss, path_save, kfold, domain_names)
+    
+    type_losses = ["entropy", "both"]
+    for type_loss in type_losses:
+        report_ece_calibrate_platt(type_eces, type_loss, path_save, kfold, domain_names)
     
 
 if __name__ == "__main__":
