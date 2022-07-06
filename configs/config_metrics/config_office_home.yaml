@@ -4,4 +4,8 @@ domain_names:
   - Clipart
   - Product
   - Real World
+k_fold:
+  - 0
+  - 1
+  - 2
 path_save: /vinbrain/anhng/domain_adaptation/experiments_new/
