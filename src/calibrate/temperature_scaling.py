@@ -174,7 +174,7 @@ def train_temp_scaling(df, type_loss = 'entropy',
     ax[1].set_title('valid ece')
     ax[2].plot(Ts)
     ax[2].set_title('T update')
-    plt.savefig(f'{path_save}' + f"/monitor_{type_loss}_kfold_{k_fold}.png")
+    plt.savefig(f'{path_save}' + f"/monitor_temperature_{type_loss}_kfold_{k_fold}.png")
 
 
 if __name__ == "__main__":
