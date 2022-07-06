@@ -210,8 +210,8 @@ if __name__ == "__main__":
                     df_main_domain = df[df.domain_name == main_domain]
                     train_temp_scaling(
                         df=df_main_domain,
-                        type_loss="entropy",
-                        type_ece="origin",
+                        type_loss=config_params['type_loss'],
+                        type_ece=config_params['type_ece'],
                         path_save=path_save,
                         k_fold=k
                     )
