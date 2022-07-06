@@ -81,15 +81,15 @@ def get_acc(train_text_paths, val_text_paths):
 
 
 def report_result_acc(dictionary_metrics, path_save, train=True):
+    path_folder = f"{path_save}/{dataset_name}"
+    if not os.path.isdir(path_folder):
+        os.makedirs(path_folder)
     if train:
         index = 2
-        path_save = f"{path_save}/{dataset_name}/result_visualize/train_metrics.csv"
+        path_save = f"{path_folder}/result_visualize/train_metrics.csv"
     else:
         index = 3
-        path_save = f"{path_save}/{dataset_name}/result_visualize/val_metrics.csv"
-    
-    if not os.path.isdir(path_save):
-        os.makedirs(path_save)
+        path_save = f"{path_folder}/result_visualize/val_metrics.csv"
 
     dictionary = {
         "Domain Name": [],
