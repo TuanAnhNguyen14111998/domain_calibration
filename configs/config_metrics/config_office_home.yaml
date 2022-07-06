@@ -1,0 +1,7 @@
+dataset_name: Office-Home
+domain_names:
+  - Art
+  - Clipart
+  - Product
+  - Real World
+path_save: /vinbrain/anhng/domain_adaptation/experiments_new/
