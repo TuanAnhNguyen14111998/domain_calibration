@@ -317,6 +317,8 @@ def report_ece_calibrate(type_eces, type_loss, path_save, kfold, domain_names):
 
                         for name in domain_names:
                             dictionary[name].append(ece_values[name])
+                    
+                    pd.DataFrame(dictionary).to_excel(writer, sheet_name=f'kfold_{i}', index=False)
 
 
 def report_ece(config_params):
