@@ -2,7 +2,7 @@ dataset_name:
   - Office
 kfold_exp:
   - 0
-- type_loss: entropy
-- type_ece: origin
-path_data: /workspace/raid/tientran/
-path_save: /vinbrain/tientran/feedbackloop/Calibrate_temp/research/domain_calibration/experiments/
+type_loss: entropy
+type_ece: origin
+path_data: /workspace/raid/anhng/domain-adaptation/
+path_save: /workspace/vinbrain/anhng/domain_adaptation/experiments_new/

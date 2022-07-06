@@ -138,7 +138,7 @@ def train_temp_scaling(df, type_loss = 'entropy',
         Loss = criterion(caliberated_logit.to(device), label_train.to(device))
         Loss.backward()
         optimizer.step()
-        losses.append(Loss)
+        losses.append(Loss.detach().cpu())
         Net_.eval()
         confidences, pred = torch.max(torch.softmax(logit_valid / Net_.temperature , 1), 1)
         if type_ece == "origin":
@@ -178,7 +178,7 @@ def train_temp_scaling(df, type_loss = 'entropy',
 
 
 if __name__ == "__main__":
-    config_params = load_from_yaml("./configs/exp.yaml")
+    config_params = load_from_yaml("./configs/config_calibrate/exp.yaml")
 
     for dataset_name in config_params["dataset_name"]:
         if dataset_name == "Office-Home":

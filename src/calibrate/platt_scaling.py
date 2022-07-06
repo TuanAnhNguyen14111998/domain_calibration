@@ -140,7 +140,7 @@ def train_plat_scaling(
         Loss = criterion(caliberated_logit.to('cuda'), label_train.to('cuda'))
         Loss.backward()
         optimizer.step()
-        losses.append(Loss)
+        losses.append(Loss.detach().cpu())
         Net_.eval()
         confidences, pred = torch.max(torch.softmax(logit_valid * Net_.w.item() + Net_.b.item() , 1), 1)
         if type_ece == "origin":
@@ -180,7 +180,7 @@ def train_plat_scaling(
 
 
 if __name__ == "__main__":
-    config_params = load_from_yaml("./configs/exp.yaml")
+    config_params = load_from_yaml("./configs/config_calibrate/exp.yaml")
 
     for dataset_name in config_params["dataset_name"]:
         if dataset_name == "Office-Home":
