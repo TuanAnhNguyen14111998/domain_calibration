@@ -2,7 +2,10 @@ dataset_name:
   - Office-Home
 kfold_exp:
   - 0
+  - 1
+  - 2
 type_loss: entropy
 type_ece: origin
+type_calibrate: in_domain
 path_data: /workspace/raid/anhng/domain-adaptation/
 path_save: /workspace/vinbrain/anhng/domain_adaptation/experiments_new/

@@ -110,75 +110,102 @@ def compute_calibration_adaptive(true_labels, pred_labels, confidences, num_bins
     return ece
 
 
-def train_temp_scaling(df, type_loss = 'entropy',
-                        type_ece = "origin",
-                        path_save = './experiments/',
-                        k_fold=0):
+def train_temp_scaling(
+    df, type_loss = 'entropy',
+    type_ece = "origin",
+    path_folder_save = './experiments/',
+    k_fold=0,
+    type_calibrate="in_domain"
+):
     
-    full_train_logit = np.vstack([json.loads(x) for x in df[df.phase == 'train']['logit'].values])
-    full_train_label = df[df.phase == 'train']['classes'].tolist()
-    full_valid_logit = np.vstack([json.loads(x) for x in df[df.phase == 'val']['logit'].values])
-    full_valid_label = df[df.phase == 'val']['classes'].tolist()
-    logit_train = torch.from_numpy(full_train_logit).to(device)
-    label_train = torch.tensor(full_train_label).squeeze().to(device)
-    logit_valid = torch.from_numpy(full_valid_logit).to(device)
-    label_valid = torch.tensor(full_valid_label).squeeze().to(device)
-    losses = []
-    eces = []
-    Ts = []
-    Net_ = TempScaleParams().to(device)
-    criterion = CaliberatedLoss(type_loss)
-    optimizer = optim.Adam(Net_.parameters(), lr=3e-3)
-    best_ece = 3000
-    best_T = 0
-    for epoch in range(200):
-        Ts.append(Net_.temperature.item())
-        Net_.train()
-        caliberated_logit = Net_(logit_train)
-        Loss = criterion(caliberated_logit.to(device), label_train.to(device))
-        Loss.backward()
-        optimizer.step()
-        losses.append(Loss.detach().cpu())
-        Net_.eval()
-        confidences, pred = torch.max(torch.softmax(logit_valid / Net_.temperature , 1), 1)
-        if type_ece == "origin":
-            ece = compute_calibration_origin(
-                label_valid.detach().cpu().numpy(), 
-                pred.detach().cpu().numpy(), 
-                confidences.detach().cpu().numpy()
-            )
-        else:
-            ece = compute_calibration_adaptive(
-                label_valid.detach().cpu().numpy(), 
-                pred.detach().cpu().numpy(), 
-                confidences.detach().cpu().numpy()
-            )
-        eces.append(ece)
-        if ece < best_ece:
-            best_ece = ece
-            best_T = Net_.temperature.item()
-    
-    # write Best T
-    f = open(f'{path_save}' + f"/{type_loss}_{type_ece}_kfold_{k_fold}_temperature_checkpoint.txt", "w")
-    f.write(str(best_T))
-    f = open(f'{path_save}' + f"/{type_loss}_{type_ece}_kfold_{k_fold}_valid.txt", "w")
-    f.write(str(best_ece))
-    f.close()
+    domain_names = set(df.domain_name)
+    for domain_name in domain_names:
+        condition_train = (df.phase == 'train') & (df.domain_name == domain_name)
+        condition_val = (df.phase == 'val') & (df.domain_name == domain_name)
 
-    figure = plt.gcf() 
-    figure.set_size_inches(8, 6)
-    fig, ax = plt.subplots(1,3, figsize = (8, 4))
-    ax[0].plot(losses)
-    ax[0].set_title('train loss')
-    ax[1].plot(eces)
-    ax[1].set_title('valid ece')
-    ax[2].plot(Ts)
-    ax[2].set_title('T update')
-    plt.savefig(f'{path_save}' + f"/monitor_temperature_{type_loss}_kfold_{k_fold}.png")
+        full_train_logit = np.vstack([json.loads(x) for x in df[condition_train]['logit'].values])
+        full_train_label = df[condition_train]['classes'].tolist()
+        full_valid_logit = np.vstack([json.loads(x) for x in df[condition_val]['logit'].values])
+        full_valid_label = df[condition_val]['classes'].tolist()
+        logit_train = torch.from_numpy(full_train_logit).to(device)
+        label_train = torch.tensor(full_train_label).squeeze().to(device)
+        logit_valid = torch.from_numpy(full_valid_logit).to(device)
+        label_valid = torch.tensor(full_valid_label).squeeze().to(device)
+        losses = []
+        eces = []
+        Ts = []
+        Net_ = TempScaleParams().to(device)
+        criterion = CaliberatedLoss(type_loss)
+        optimizer = optim.Adam(Net_.parameters(), lr=3e-3)
+        best_ece = 3000
+        best_T = 0
+        for epoch in range(200):
+            Ts.append(Net_.temperature.item())
+            Net_.train()
+            caliberated_logit = Net_(logit_train)
+            Loss = criterion(caliberated_logit.to(device), label_train.to(device))
+            Loss.backward()
+            optimizer.step()
+            losses.append(Loss.detach().cpu())
+            Net_.eval()
+            confidences, pred = torch.max(torch.softmax(logit_valid / Net_.temperature , 1), 1)
+            if type_ece == "origin":
+                ece = compute_calibration_origin(
+                    label_valid.detach().cpu().numpy(), 
+                    pred.detach().cpu().numpy(), 
+                    confidences.detach().cpu().numpy()
+                )
+            else:
+                ece = compute_calibration_adaptive(
+                    label_valid.detach().cpu().numpy(), 
+                    pred.detach().cpu().numpy(), 
+                    confidences.detach().cpu().numpy()
+                )
+            eces.append(ece)
+            if ece < best_ece:
+                best_ece = ece
+                best_T = Net_.temperature.item()
+        
+        if type_calibrate == "in_domain":
+            # write Best T
+            f = open(f'{path_folder_save}' + f"/{type_loss}_{type_ece}_kfold_{k_fold}_temperature_checkpoint.txt", "w")
+            f.write(str(best_T))
+            f = open(f'{path_folder_save}' + f"/{type_loss}_{type_ece}_kfold_{k_fold}_valid.txt", "w")
+            f.write(str(best_ece))
+            f.close()
+
+            figure = plt.gcf() 
+            figure.set_size_inches(8, 6)
+            fig, ax = plt.subplots(1,3, figsize = (8, 4))
+            ax[0].plot(losses)
+            ax[0].set_title('train loss')
+            ax[1].plot(eces)
+            ax[1].set_title('valid ece')
+            ax[2].plot(Ts)
+            ax[2].set_title('T update')
+            plt.savefig(f'{path_folder_save}' + f"monitor_temperature_{type_loss}_kfold_{k_fold}.png")
+        else:
+            # write Best T
+            f = open(f'{path_folder_save}' + f"/{domain_name}_{type_loss}_{type_ece}_kfold_{k_fold}_temperature_checkpoint.txt", "w")
+            f.write(str(best_T))
+            f = open(f'{path_folder_save}' + f"/{domain_name}_{type_loss}_{type_ece}_kfold_{k_fold}_valid.txt", "w")
+            f.write(str(best_ece))
+            f.close()
+
+            figure = plt.gcf() 
+            figure.set_size_inches(8, 6)
+            fig, ax = plt.subplots(1,3, figsize = (8, 4))
+            ax[0].plot(losses)
+            ax[0].set_title('train loss')
+            ax[1].plot(eces)
+            ax[1].set_title('valid ece')
+            ax[2].plot(Ts)
+            ax[2].set_title('T update')
+            plt.savefig(f'{path_folder_save}' + f"{domain_name}_monitor_temperature_{type_loss}_kfold_{k_fold}.png")
 
 
 if __name__ == "__main__":
-    config_params = load_from_yaml("./configs/config_calibrate/exp.yaml")
+    config_params = load_from_yaml("./configs/config_calibrate/exp_office.yaml")
 
     for dataset_name in config_params["dataset_name"]:
         if dataset_name == "Office-Home":
@@ -196,22 +223,41 @@ if __name__ == "__main__":
             main_domain = path_csv.split("/")[-1].replace("_kfold.csv", "")
 
             print(f"Running on {dataset_name} with domain: {main_domain} .... ")
-            path_save =\
+            path_folder_domain =\
                 f"{config_params['path_save']}/{dataset_name}/{main_domain}/"
-            
-            if not os.path.isdir(path_save):
-                os.makedirs(path_save)
 
             k_fold = 3
             for k in range(3):
                 if k in config_params["kfold_exp"]:
-                    path_excel = path_save + "resnet_34_kfold_val_logits.xlsx"
-                    df = pd.read_excel(path_excel, sheet_name=f"kfold_{k}")
-                    df_main_domain = df[df.domain_name == main_domain]
-                    train_temp_scaling(
-                        df=df_main_domain,
-                        type_loss=config_params['type_loss'],
-                        type_ece=config_params['type_ece'],
-                        path_save=path_save,
-                        k_fold=k
-                    )
+
+                    if config_params["type_calibrate"] == "in_domain":
+                        path_excel = path_folder_domain + "resnet_34_kfold_val_logits.xlsx"
+                        df = pd.read_excel(path_excel, sheet_name=f"kfold_{k}")
+                        df_main_domain = df[df.domain_name == main_domain]
+                        path_folder_save = path_folder_domain + "/calibrate_in_domain/"
+                        if not os.path.isdir(path_folder_save):
+                            os.makedirs(path_folder_save)
+                        
+                        train_temp_scaling(
+                            df=df_main_domain,
+                            type_loss=config_params['type_loss'],
+                            type_ece=config_params['type_ece'],
+                            path_folder_save=path_folder_save,
+                            k_fold=k,
+                            type_calibrate=config_params["type_calibrate"]
+                        )
+                    else:
+                        path_excel = path_folder_domain + "resnet_34_kfold_val_outdomain_logits.xlsx"
+                        df = pd.read_excel(path_excel, sheet_name=f"kfold_{k}")
+                        path_folder_save = path_folder_domain + "/calibrate_out_domain/"
+                        if not os.path.isdir(path_folder_save):
+                            os.makedirs(path_folder_save)
+
+                        train_temp_scaling(
+                            df=df,
+                            type_loss=config_params['type_loss'],
+                            type_ece=config_params['type_ece'],
+                            path_folder_save=path_folder_save,
+                            k_fold=k,
+                            type_calibrate=config_params["type_calibrate"]
+                        )

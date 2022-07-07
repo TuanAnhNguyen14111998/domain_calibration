@@ -12,7 +12,8 @@ learning_rate_init: 1e-7
 learning_rate_optimize: 8.11e-04
 number_epochs: 50
 patience: 7
-path_data: /workspace/raid/tientran/
+path_data: /workspace/raid/anhng/domain-adaptation/
+path_save: /workspace/vinbrain/anhng/domain_adaptation/experiments_new/
 get_learning_rate: False
 train_augment:
   - CenterCrop

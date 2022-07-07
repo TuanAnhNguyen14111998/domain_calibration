@@ -1,9 +1,8 @@
-dataset_name: Office-Home
+dataset_name: Domain-net
 domain_names:
-  - Art
-  - Clipart
-  - Product
-  - Real World
+  - clipart
+  - painting
+  - real
 k_fold:
   - 0
   - 1
