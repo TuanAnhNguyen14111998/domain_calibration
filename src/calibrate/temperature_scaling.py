@@ -10,6 +10,8 @@ import yaml
 import glob
 import os
 import matplotlib.pyplot as plt
+import warnings
+warnings.filterwarnings('ignore')
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
