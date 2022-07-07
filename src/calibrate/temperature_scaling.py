@@ -136,7 +136,7 @@ def train_temp_scaling(
         Ts = []
         Net_ = TempScaleParams().to(device)
         criterion = CaliberatedLoss(type_loss)
-        optimizer = optim.Adam(Net_.parameters(), lr=3e-3)
+        optimizer = optim.Adam(Net_.parameters(), lr=3e-2)
         best_ece = 3000
         best_T = 0
         for epoch in range(200):
