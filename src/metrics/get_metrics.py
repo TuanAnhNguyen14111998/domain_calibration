@@ -424,7 +424,7 @@ def report_ece(config_params):
     type_losses = ["entropy", "both"]
     for type_loss in type_losses:
         report_ece_calibrate_temperature(
-            type_eces, type_loss, 
+            config_params, type_eces, type_loss, 
             path_save, kfold, domain_names, 
             config_params['type_calibrate']
         )
@@ -432,7 +432,7 @@ def report_ece(config_params):
     # type_losses = ["entropy", "both"]
     # for type_loss in type_losses:
     #     report_ece_calibrate_platt(
-    #         type_eces, type_loss, 
+    #         config_params, type_eces, type_loss, 
     #         path_save, kfold, domain_names, 
     #         config_params['type_calibrate']
     #     )
