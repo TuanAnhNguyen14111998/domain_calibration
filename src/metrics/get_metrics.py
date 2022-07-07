@@ -240,7 +240,7 @@ def caculate_ece_not_calibrate(df, domain_names, type_calibration="ece"):
 
 
 def caculate_ece_calibrate(
-    df, domain_names, T, 
+    df, domain_names,
     type_calibrate="in_domain", 
     type_ece="ece",
     type_loss="entropy",
