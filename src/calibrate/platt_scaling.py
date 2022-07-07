@@ -204,56 +204,57 @@ if __name__ == "__main__":
     config_params = load_from_yaml("./configs/config_calibrate/exp_office.yaml")
 
     for dataset_name in config_params["dataset_name"]:
-        if dataset_name == "Office-Home":
-            path_information =\
-                f"{config_params['path_data']}/{dataset_name}/OfficeHomeDataset_10072016/information/"
-        elif dataset_name == "Bing-Caltech":
-            path_information =\
-                f"{config_params['path_data']}/{dataset_name}/information/"
-        else:
-            path_information =\
-                f"{config_params['path_data']}/{dataset_name}/information/"
-        
-        all_csv_domain = glob.glob(path_information + "/*.csv")
-        for path_csv in all_csv_domain:
-            main_domain = path_csv.split("/")[-1].replace("_kfold.csv", "")
+        for type_loss in config_params["type_losses"]:
+            if dataset_name == "Office-Home":
+                path_information =\
+                    f"{config_params['path_data']}/{dataset_name}/OfficeHomeDataset_10072016/information/"
+            elif dataset_name == "Bing-Caltech":
+                path_information =\
+                    f"{config_params['path_data']}/{dataset_name}/information/"
+            else:
+                path_information =\
+                    f"{config_params['path_data']}/{dataset_name}/information/"
+            
+            all_csv_domain = glob.glob(path_information + "/*.csv")
+            for path_csv in all_csv_domain:
+                main_domain = path_csv.split("/")[-1].replace("_kfold.csv", "")
 
-            print(f"Running on {dataset_name} with domain: {main_domain} .... ")
-            path_folder_domain =\
-                f"{config_params['path_save']}/{dataset_name}/{main_domain}/"
+                print(f"Running on {dataset_name} with domain: {main_domain} .... ")
+                path_folder_domain =\
+                    f"{config_params['path_save']}/{dataset_name}/{main_domain}/"
 
-            k_fold = 3
-            for k in range(3):
-                if k in config_params["kfold_exp"]:
-                    if config_params["type_calibrate"] == "in_domain":
-                        path_excel = path_folder_domain + "resnet_34_kfold_val_logits.xlsx"
-                        df = pd.read_excel(path_excel, sheet_name=f"kfold_{k}")
-                        df_main_domain = df[df.domain_name == main_domain]
-                        path_folder_save = path_folder_domain + "/calibrate_in_domain/"
-                        if not os.path.isdir(path_folder_save):
-                            os.makedirs(path_folder_save)
-                        
-                        train_plat_scaling(
-                            df=df_main_domain,
-                            type_loss=config_params['type_loss'],
-                            type_ece=config_params['type_ece'],
-                            path_folder_save=path_folder_save,
-                            k_fold=k,
-                            type_calibrate=config_params["type_calibrate"]
-                        )
-                    else:
-                        path_excel = path_folder_domain + "resnet_34_kfold_val_outdomain_logits.xlsx"
-                        df = pd.read_excel(path_excel, sheet_name=f"kfold_{k}")
-                        path_folder_save = path_folder_domain + "/calibrate_out_domain/"
-                        if not os.path.isdir(path_folder_save):
-                            os.makedirs(path_folder_save)
-                        
-                        train_plat_scaling(
-                            df=df,
-                            type_loss=config_params['type_loss'],
-                            type_ece=config_params['type_ece'],
-                            path_folder_save=path_folder_save,
-                            k_fold=k,
-                            type_calibrate=config_params["type_calibrate"]
-                        )
+                k_fold = 3
+                for k in range(3):
+                    if k in config_params["kfold_exp"]:
+                        if config_params["type_calibrate"] == "in_domain":
+                            path_excel = path_folder_domain + "resnet_34_kfold_val_logits.xlsx"
+                            df = pd.read_excel(path_excel, sheet_name=f"kfold_{k}")
+                            df_main_domain = df[df.domain_name == main_domain]
+                            path_folder_save = path_folder_domain + "/calibrate_in_domain/"
+                            if not os.path.isdir(path_folder_save):
+                                os.makedirs(path_folder_save)
+                            
+                            train_plat_scaling(
+                                df=df_main_domain,
+                                type_loss=type_loss,
+                                type_ece=config_params['type_ece'],
+                                path_folder_save=path_folder_save,
+                                k_fold=k,
+                                type_calibrate=config_params["type_calibrate"]
+                            )
+                        else:
+                            path_excel = path_folder_domain + "resnet_34_kfold_val_outdomain_logits.xlsx"
+                            df = pd.read_excel(path_excel, sheet_name=f"kfold_{k}")
+                            path_folder_save = path_folder_domain + "/calibrate_out_domain/"
+                            if not os.path.isdir(path_folder_save):
+                                os.makedirs(path_folder_save)
+                            
+                            train_plat_scaling(
+                                df=df,
+                                type_loss=type_loss,
+                                type_ece=config_params['type_ece'],
+                                path_folder_save=path_folder_save,
+                                k_fold=k,
+                                type_calibrate=config_params["type_calibrate"]
+                            )
 

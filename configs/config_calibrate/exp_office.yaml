@@ -4,7 +4,9 @@ kfold_exp:
   - 0
   - 1
   - 2
-type_loss: entropy
+type_losses:
+  - entropy
+  - both
 type_ece: origin
 type_calibrate: in_domain
 path_data: /workspace/raid/anhng/domain-adaptation/
