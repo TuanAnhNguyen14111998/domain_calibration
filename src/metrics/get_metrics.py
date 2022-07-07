@@ -92,7 +92,7 @@ def report_result_acc(dictionary_metrics, config_params, train=True):
         path_folder = f"{config_params['path_save']}/{config_params['dataset_name']}/result_visualize/calibrate_out_domain/"
     
     if not os.path.isdir(path_folder):
-        os.mkdir(path_folder)
+        os.makedirs(path_folder)
     
     if train:
         index = 2
@@ -429,13 +429,13 @@ def report_ece(config_params):
             config_params['type_calibrate']
         )
     
-    type_losses = ["entropy", "both"]
-    for type_loss in type_losses:
-        report_ece_calibrate_platt(
-            type_eces, type_loss, 
-            path_save, kfold, domain_names, 
-            config_params['type_calibrate']
-        )
+    # type_losses = ["entropy", "both"]
+    # for type_loss in type_losses:
+    #     report_ece_calibrate_platt(
+    #         type_eces, type_loss, 
+    #         path_save, kfold, domain_names, 
+    #         config_params['type_calibrate']
+    #     )
     
 
 if __name__ == "__main__":
