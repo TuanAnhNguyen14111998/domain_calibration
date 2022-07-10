@@ -100,9 +100,9 @@ def export_logits(
     return pd.concat(list_df)
 
 
-def get_image_id_source(path_style_transfer, dataset_name, main_domain, kfold=0):
+def get_image_id_source(path_style_transfer, kfold=0):
     df_mean_feature = pd.read_excel(
-        f"{path_style_transfer}/{dataset_name}/{main_domain}/resnet_34_export_feature_vector.xlsx",
+        f"{path_style_transfer}/resnet_34_export_feature_vector.xlsx",
         sheet_name=f"kfold_{kfold}"
     )
 
@@ -185,8 +185,8 @@ if __name__ == "__main__":
                         model_ft = model_ft.to(device)
 
                         image_id_source = get_image_id_source(
-                            path_style_transfer, dataset_name, 
-                            main_domain, kfold=k
+                            path_style_transfer, 
+                            kfold=k
                         )
 
                         dataframe_logits = []

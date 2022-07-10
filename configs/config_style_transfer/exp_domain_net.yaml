@@ -12,7 +12,7 @@ path_data: /workspace/raid/anhng/domain-adaptation/
 path_weight: /workspace/vinbrain/anhng/domain_adaptation/experiments_new/
 path_style_transfer: /workspace/vinbrain/anhng/domain_adaptation/experiments_style_transfer/
 transfer_name: FDA
-L: 0.0001
+L: 0.001
 train_augment:
   - CenterCrop
   - Normalize
