@@ -90,16 +90,16 @@ def export_features(
     for inputs, labels, records in tqdm(dataloaders["train"]):
         inputs = inputs.to(device)
         outputs = model(inputs)
-        mean_vector += outputs.view(inputs.size(0), -1).mean(0)
+        mean_vector += outputs.view(inputs.size(0), -1).mean(0).cpu().detach()
         number_batch += 1
 
         df = pd.DataFrame(records)
-        df["feature vector"] = outputs.cpu().detach().numpy().tolist()
+        df["feature_vector"] = outputs.cpu().detach().numpy().tolist()
         list_df.append(df)
     
     mean_vector /= number_batch
     df_result = pd.concat(list_df)
-    df_result["mean_feature_vector"] = mean_vector.cpu().detach().numpy().tolist()
+    df_result["mean_feature_vector"] = np.tile(mean_vector.numpy(), (df_result.shape[0], 1)).tolist()
     
     return df_result
 

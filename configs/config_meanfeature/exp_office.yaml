@@ -10,8 +10,7 @@ batch_size: 132
 num_workers: 4
 path_data: /workspace/raid/anhng/domain-adaptation/
 path_weight: /workspace/vinbrain/anhng/domain_adaptation/experiments_new/
-path_style_transfer: /workspace/vinbrain/anhng/domain_adaptation/style_transfer/
-get_learning_rate: False
+path_style_transfer: /workspace/vinbrain/anhng/domain_adaptation/experiments_style_transfer/
 train_augment:
   - CenterCrop
   - Normalize
