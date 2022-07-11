@@ -1,0 +1,13 @@
+dataset_name: Office-Home
+domain_names:
+  - Art
+  - Clipart
+  - Product
+  - Real World
+k_fold:
+  - 0
+  - 1
+  - 2
+type_calibrate: in_domain_old
+path_exp_old: /vinbrain/anhng/domain_adaptation/experiments_new/
+path_exp_new: /vinbrain/anhng/domain_adaptation/experiments_style_transfer/
