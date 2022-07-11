@@ -365,9 +365,14 @@ def report_ece_calibrate_temperature(
                         dictionary[domain_name] = []
 
                     for domain_name in domain_names:
-                        path_excel = f"{config_params['path_exp_new']}/{config_params['dataset_name']}/{domain_name}/resnet_34_kfold_val_outdomain_logits.xlsx"
+                        if config_params['type_calibrate'] == "in_domain_old":
+                            checkpoint_folder = f"{path_exp}/{domain_name}/calibrate_in_domain/"
+                        elif config_params['type_calibrate'] == "out_domain_old":
+                            checkpoint_folder = f"{path_exp}/{domain_name}/calibrate_out_domain/"
+                        else:
+                            checkpoint_folder = f"{config_params['path_exp_new']}/{config_params['dataset_name']}/{domain_name}/calibrate_out_domain/"
 
-                        checkpoint_folder = path_exp
+                        path_excel = f"{config_params['path_exp_new']}/{config_params['dataset_name']}/{domain_name}/resnet_34_kfold_val_outdomain_logits.xlsx"
 
                         dictionary['Domain Name'].append(domain_name)
                         df = pd.read_excel(path_excel, sheet_name=f"kfold_{i}")
@@ -388,63 +393,18 @@ def report_ece_calibrate_temperature(
                     pd.DataFrame(dictionary).to_excel(writer, sheet_name=f'kfold_{i}', index=False)
 
 
-def report_ece_calibrate_platt(
-    config_params, type_eces, type_loss, 
-    path_save, kfold, domain_names, type_calibrate
-):
-    for type_ece in type_eces:
-        with pd.ExcelWriter(f'{path_save}/{type_ece}_{type_loss}_calibrate_platscaling_results_logits.xlsx') as writer:
-            for i in range(3):
-                if i in kfold:
-                    dictionary = {
-                        "Domain Name": [],
-                    }
-
-                    for domain_name in domain_names:
-                        dictionary[domain_name] = []
-
-                    for domain_name in domain_names:
-                        
-                        if type_calibrate == "in_domain":
-                            path_excel = f"{config_params['path_save']}/{config_params['dataset_name']}/{domain_name}/resnet_34_kfold_val_logits.xlsx"
-                            checkpoint_folder = f"{config_params['path_save']}/{config_params['dataset_name']}/{domain_name}/calibrate_in_domain/"
-                        else:
-                            path_excel = f"{config_params['path_save']}/{config_params['dataset_name']}/{domain_name}/resnet_34_kfold_val_outdomain_logits.xlsx"
-                            checkpoint_folder = f"{config_params['path_save']}/{config_params['dataset_name']}/{domain_name}/calibrate_out_domain/"
-                        
-
-                        dictionary['Domain Name'].append(domain_name)
-                        df = pd.read_excel(path_excel, sheet_name=f"kfold_{i}")
-
-                        ece_values = caculate_ece_calibrate(
-                            df=df, domain_names=domain_names,
-                            type_calibrate=type_calibrate, 
-                            type_ece=type_ece,
-                            type_loss=type_loss,
-                            kfold=i,
-                            checkpoint_folder=checkpoint_folder,
-                            name_calibrate="platscaling"
-                        )
-
-                        for name in domain_names:
-                            dictionary[name].append(ece_values[name])
-                    
-                    pd.DataFrame(dictionary).to_excel(writer, sheet_name=f'kfold_{i}', index=False)
-
-
 def report_ece(config_params):
     domain_names = config_params["domain_names"]
     kfold = config_params["k_fold"]
 
     if config_params['type_calibrate'] == "in_domain_old":
-        path_exp_old = f"{config_params['path_exp_old']}/{config_params['dataset_name']}/calibrate_in_domain/"
         path_save = f"{config_params['path_exp_new']}/{config_params['dataset_name']}/result_visualize/calibrate_in_domain_old/"
     elif config_params['type_calibrate'] == "out_domain_old":
-        path_exp_old = f"{config_params['path_exp_old']}/{config_params['dataset_name']}/calibrate_out_domain/"
         path_save = f"{config_params['path_exp_new']}/{config_params['dataset_name']}/result_visualize/calibrate_out_domain_old/"
     else:
-        path_exp_old = f"{config_params['path_exp_new']}/{config_params['dataset_name']}/calibrate_out_domain/"
         path_save = f"{config_params['path_exp_new']}/{config_params['dataset_name']}/result_visualize/calibrate_out_domain_new/"
+    
+    path_exp_old = f"{config_params['path_exp_old']}/{config_params['dataset_name']}/calibrate_in_domain/"
     
     if not os.path.isdir(path_save):
         os.makedirs(path_save)
@@ -470,19 +430,10 @@ def report_ece(config_params):
             domain_names=domain_names,
             type_calibrate=config_params['type_calibrate']
         )
-    
-    # type_losses = ["entropy", "both"]
-    # for type_loss in type_losses:
-    #     report_ece_calibrate_platt(
-    #         config_params, type_eces, type_loss, 
-    #         path_save, kfold, domain_names, 
-    #         config_params['type_calibrate']
-    #     )
-    
 
 if __name__ == "__main__":
 
-    config_params = load_from_yaml("./configs/config_metrics/config_office.yaml")
+    config_params = load_from_yaml("./configs/config_metrics/config_metrics_styletransfer/config_office.yaml")
 
     # report ece
     report_ece(config_params)
