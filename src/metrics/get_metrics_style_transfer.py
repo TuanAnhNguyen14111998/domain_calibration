@@ -174,6 +174,9 @@ def compute_calibration(true_labels, pred_labels, confidences, num_bins=10):
 
 def compute_calibration_adaptive_new(true_labels, pred_labels, confidences, num_bins=10):
     left_tail = confidences[np.where(~(confidences > 0.995))]
+    np.random.seed(0)
+    epsilon = np.random.rand(left_tail.shape[0]) / 10**(9)
+    left_tail += epsilon
     _, left_bin = pd.qcut(left_tail, num_bins - 1, retbins=True)
     bins = np.hstack((left_bin, np.array([np.max(confidences) + 0.001])))
     indices = np.digitize(confidences, bins, right=True)

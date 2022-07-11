@@ -170,6 +170,30 @@ def compute_calibration(true_labels, pred_labels, confidences, num_bins=10):
 #     mce = np.max(gaps)
 #     return ece
 
+def compute_calibration_adaptive_new(true_labels, pred_labels, confidences, num_bins=10):
+    left_tail = confidences[np.where(~(confidences > 0.995))]
+    np.random.seed(0)
+    epsilon = np.random.rand(left_tail.shape[0]) / 10**(9)
+    left_tail += epsilon
+    _, left_bin = pd.qcut(left_tail, num_bins - 1, retbins=True)
+    bins = np.hstack((left_bin, np.array([np.max(confidences) + 0.001])))
+    indices = np.digitize(confidences, bins, right=True)
+    bin_accuracies = np.zeros(num_bins, dtype=np.float)
+    bin_confidences = np.zeros(num_bins, dtype=np.float)
+    bin_counts = np.zeros(num_bins, dtype=np.int)
+    for b in range(num_bins):
+        selected = np.where(indices == b + 1)[0]
+        if len(selected) > 0:
+            bin_accuracies[b] = np.mean(true_labels[selected] == pred_labels[selected])
+            bin_confidences[b] = np.mean(confidences[selected])
+            bin_counts[b] = len(selected)
+    avg_acc = np.sum(bin_accuracies * bin_counts) / np.sum(bin_counts)
+    avg_conf = np.sum(bin_confidences * bin_counts) / np.sum(bin_counts)
+    gaps = np.abs(bin_accuracies - bin_confidences)
+    ece = np.sum(gaps * bin_counts) / np.sum(bin_counts)
+    return ece
+
+
 def compute_adaptation_calibration(true_labels, pred_labels, confidences, num_bins=10):
     np.random.seed(0)
     epsilon = np.random.rand(confidences.shape[0]) / 10**(9)
@@ -191,7 +215,7 @@ def compute_adaptation_calibration(true_labels, pred_labels, confidences, num_bi
     gaps = np.abs(bin_accuracies - bin_confidences)
     ece = np.sum(gaps * bin_counts) / np.sum(bin_counts)
     mce = np.max(gaps)
-    
+
     return ece
 
 
@@ -246,6 +270,13 @@ def caculate_ece_not_calibrate(df, domain_names, type_calibration="ece"):
             )
         elif type_calibration == "adapt":
             uncalibrated_score = compute_adaptation_calibration(
+                np.array(val_ground_truth), 
+                val_pred.detach().cpu().numpy(),
+                val_confidences.detach().cpu().numpy(), 
+                num_bins=n_bins
+            )
+        elif type_calibration == "adapt_new":
+            uncalibrated_score = compute_calibration_adaptive_new(
                 np.array(val_ground_truth), 
                 val_pred.detach().cpu().numpy(),
                 val_confidences.detach().cpu().numpy(), 
@@ -306,6 +337,13 @@ def caculate_ece_calibrate(
             )
         elif type_ece == "adapt":
             calibrated_score = compute_adaptation_calibration(
+                np.array(val_ground_truth), 
+                val_pred.detach().cpu().numpy(), 
+                val_confidences.detach().cpu().numpy(), 
+                num_bins=n_bins
+            )
+        elif type_ece == "adapt_new":
+            calibrated_score = compute_calibration_adaptive_new(
                 np.array(val_ground_truth), 
                 val_pred.detach().cpu().numpy(), 
                 val_confidences.detach().cpu().numpy(), 
@@ -442,7 +480,7 @@ def report_ece(config_params):
     else:
         path_save = f"{config_params['path_save']}/{config_params['dataset_name']}/result_visualize/calibrate_out_domain/"
         
-    type_eces = ["ece", "adapt", "cce"]
+    type_eces = ["ece", "adapt", "cce", "adapt_new"]
     report_ece_not_calibrate(type_eces, path_save, kfold, domain_names)
     
     type_losses = ["entropy", "both"]
