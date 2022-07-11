@@ -82,7 +82,7 @@ class Dataset(data.Dataset):
             # im_src = im_src.transpose((2, 0, 1))
             # im_trg = im_trg.transpose((2, 0, 1))
 
-            src_in_trg = FDA_source_to_target_np(im_src, im_trg, L=self.L)
+            src_in_trg = FDA_source_to_target_np(im_trg, im_src, L=self.L)
 
             # src_in_trg = src_in_trg.reshape(im_src.shape).transpose((1,2,0))
             src_in_trg = src_in_trg.reshape(im_src.shape)
