@@ -56,7 +56,7 @@ class Dataset(data.Dataset):
         image_source_name = self.image_id_source.split("__")[1]
         image_source_path = self.folder_data + "/" + self.image_id_source.split("__")[0] + f"/{image_source_name}"
 
-        im_src_origin = cv2.cvtColor(image_source_path)
+        im_src_origin = cv2.imread(image_source_path)
 
         labels = self.df_info.iloc[index]["classes"]
         image_id = self.df_info.iloc[index]["imageid"]
@@ -77,12 +77,13 @@ class Dataset(data.Dataset):
             im_src = np.asarray(im_src, np.float32)
             im_trg = np.asarray(im_trg, np.float32)
             
-            im_src = im_src.transpose((2, 0, 1))
-            im_trg = im_trg.transpose((2, 0, 1))
+            # im_src = im_src.transpose((2, 0, 1))
+            # im_trg = im_trg.transpose((2, 0, 1))
 
             src_in_trg = FDA_source_to_target_np(im_src, im_trg, L=self.L)
 
-            src_in_trg = src_in_trg.reshape(im_src.shape).transpose((1,2,0))
+            # src_in_trg = src_in_trg.reshape(im_src.shape).transpose((1,2,0))
+            src_in_trg = src_in_trg.reshape(im_src.shape)
             
             image = np.array(np.clip(src_in_trg, 0.0, 255.0), np.uint8)
 
