@@ -195,12 +195,16 @@ if __name__ == "__main__":
 
                             if dataset_name ==  "Office-Home":
                                 path_root = f"{config_params['path_data']}/{dataset_name}/OfficeHomeDataset_10072016/{domain_name}/"
+                                path_root_source = f"{config_params['path_data']}/{dataset_name}/OfficeHomeDataset_10072016/{main_domain}/"
                             elif dataset_name == "Bing-Caltech":
                                 path_root = f"{config_params['path_data']}/{dataset_name}/BingLarge_C256_deduped/"
+                                path_root_source = f"{config_params['path_data']}/{dataset_name}/BingLarge_C256_deduped/"
                             elif dataset_name == "Domain-net":
                                 path_root = f"{config_params['path_data']}/{dataset_name}/{domain_name}/"
+                                path_root_source = f"{config_params['path_data']}/{dataset_name}/{main_domain}/"
                             else:
                                 path_root = f"{config_params['path_data']}/{dataset_name}/{domain_name}/images/"
+                                path_root_source = f"{config_params['path_data']}/{dataset_name}/{main_domain}/images/"
                             
                             df_info_k_fold = information["dataframe"].copy()
                             df_info_k_fold["domain_name"] = domain_name
@@ -222,6 +226,7 @@ if __name__ == "__main__":
                                     input_size=config_params["input_size"], 
                                     transforms=data_transforms["train"],
                                     image_id_source=image_id_source,
+                                    path_root_source=path_root_source,
                                     L=config_params["L"],
                                     export_main_domain=export_main_domain),
                                 "val": Dataset(
@@ -231,6 +236,7 @@ if __name__ == "__main__":
                                     input_size=config_params["input_size"],
                                     transforms=data_transforms["val"],
                                     image_id_source=image_id_source,
+                                    path_root_source=path_root_source,
                                     L=config_params["L"],
                                     export_main_domain=export_main_domain),
                             }

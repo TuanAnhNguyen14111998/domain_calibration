@@ -36,7 +36,8 @@ def image_resize(image, width = None, height = None, inter = cv2.INTER_AREA):
 
 class Dataset(data.Dataset):
     def __init__(self, df_info, folder_data, image_size_ratio, 
-                input_size, transforms=None, image_id_source=None, 
+                input_size, transforms=None, image_id_source=None,
+                path_root_source=None, 
                 L=0.001,
                 export_main_domain=True):
         self.df_info = df_info
@@ -45,6 +46,7 @@ class Dataset(data.Dataset):
         self.input_size = input_size
         self.transforms = transforms
         self.image_id_source = image_id_source
+        self.path_root_source = path_root_source
         self.L = L
         self.export_main_domain = export_main_domain
 
@@ -54,7 +56,7 @@ class Dataset(data.Dataset):
     def __getitem__(self, index):
 
         image_source_name = self.image_id_source.split("__")[1]
-        image_source_path = self.folder_data + "/" + self.image_id_source.split("__")[0] + f"/{image_source_name}"
+        image_source_path = self.path_root_source + "/" + self.image_id_source.split("__")[0] + f"/{image_source_name}"
 
         im_src_origin = cv2.imread(image_source_path)
 
