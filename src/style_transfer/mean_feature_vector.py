@@ -9,6 +9,7 @@ import torch.nn as nn
 import glob
 import numpy as np
 import yaml
+import json
 
 import os
 import sys
@@ -102,6 +103,23 @@ def export_features(
     df_result["mean_feature_vector"] = np.tile(mean_vector.numpy(), (df_result.shape[0], 1)).tolist()
     
     return df_result
+
+
+def get_image_id_source(df):
+    dictionary_dist = {}
+    pdist = torch.nn.PairwiseDistance(p=2)
+
+    for index, row in df.iterrows():
+        mean_feature_vector = torch.tensor(json.loads(df.iloc[0]["mean_feature_vector"]))
+        feature_vector = torch.tensor(json.loads(row["feature_vector"]))
+        pdist = torch.nn.PairwiseDistance(p=2)
+        dist = pdist(feature_vector.view(1, -1), mean_feature_vector.cpu().view(1, -1))
+        dictionary_dist[row["imageid"]] = dist.cpu().numpy()[0]
+    
+    sorted_dictionary_dists = {k: str(v) for k, v in sorted(dictionary_dist.items(), key=lambda item: item[1])}
+    image_id_closest = list(sorted_dictionary_dists.keys())[0]
+
+    return image_id_closest
 
 
 if __name__ == "__main__":
@@ -224,3 +242,22 @@ if __name__ == "__main__":
 
                         dataframe_logits = pd.concat(dataframe_logits)
                         dataframe_logits.to_excel(writer, sheet_name=f'kfold_{k}', index=False)
+            
+            k_fold = 3
+            path_excel = f'{path_style_transfer}/resnet_34_export_feature_vector.xlsx'
+            dictionary_imageid_source = {
+                "image_id_source": [],
+                "kfold": []
+            }
+            for k in range(3):
+                if k in config_params["kfold_exp"]:
+                    df = pd.read_excel(path_excel, sheet_name=f"kfold_{k}")
+                    image_id_source = get_image_id_source()
+                    dictionary_imageid_source["kfold"].append(k)
+                    dictionary_imageid_source["image_id_source"].append(image_id_source)
+            
+            pd.DataFrame(dictionary_imageid_source).to_csv(
+                f'{path_style_transfer}/image_id_source.csv',
+                index=False
+            )
+
