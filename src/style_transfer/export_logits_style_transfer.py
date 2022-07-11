@@ -164,7 +164,7 @@ if __name__ == "__main__":
             number_classes = len(set(informations[0]["dataframe"]["classes"]))
 
             k_fold = 3
-            with pd.ExcelWriter(f'{path_style_transfer}/resnet_34_kfold_val_logits.xlsx') as writer:
+            with pd.ExcelWriter(f'{path_style_transfer}/resnet_34_kfold_val_outdomain_logits.xlsx') as writer:
                 for k in range(3):
                     if k in config_params["kfold_exp"]:
                         model_ft = initialize_model(
