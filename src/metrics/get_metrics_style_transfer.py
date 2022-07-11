@@ -404,7 +404,7 @@ def report_ece(config_params):
     else:
         path_save = f"{config_params['path_exp_new']}/{config_params['dataset_name']}/result_visualize/calibrate_out_domain_new/"
     
-    path_exp_old = f"{config_params['path_exp_old']}/{config_params['dataset_name']}/calibrate_in_domain/"
+    path_exp_old = f"{config_params['path_exp_old']}/{config_params['dataset_name']}/"
     
     if not os.path.isdir(path_save):
         os.makedirs(path_save)
