@@ -101,24 +101,12 @@ def export_logits(
 
 
 def get_image_id_source(path_style_transfer, kfold=0):
-    df_mean_feature = pd.read_excel(
-        f"{path_style_transfer}/resnet_34_export_feature_vector.xlsx",
-        sheet_name=f"kfold_{kfold}"
+    df_mean_feature = pd.read_csv(
+        f"{path_style_transfer}/image_id_source.csv",
     )
-
-    dictionary_dist = {}
-    pdist = torch.nn.PairwiseDistance(p=2)
-
-    for index, row in df_mean_feature.iterrows():
-        mean_feature_vector = torch.tensor(json.loads(df_mean_feature.iloc[0]["mean_feature_vector"]))
-        feature_vector = torch.tensor(json.loads(row["feature_vector"]))
-        pdist = torch.nn.PairwiseDistance(p=2)
-        dist = pdist(feature_vector.view(1, -1), mean_feature_vector.cpu().view(1, -1))
-        dictionary_dist[row["imageid"]] = dist.cpu().numpy()[0]
+    df_mean_feature = df_mean_feature[df_mean_feature.kfold==kfold]
+    image_id_closest = df_mean_feature.iloc[0]["image_id_source"]
     
-    sorted_dictionary_dists = {k: str(v) for k, v in sorted(dictionary_dist.items(), key=lambda item: item[1])}
-    image_id_closest = list(sorted_dictionary_dists.keys())[0]
-
     return image_id_closest
 
 

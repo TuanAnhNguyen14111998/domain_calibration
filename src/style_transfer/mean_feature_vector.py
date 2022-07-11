@@ -252,7 +252,7 @@ if __name__ == "__main__":
             for k in range(3):
                 if k in config_params["kfold_exp"]:
                     df = pd.read_excel(path_excel, sheet_name=f"kfold_{k}")
-                    image_id_source = get_image_id_source()
+                    image_id_source = get_image_id_source(df)
                     dictionary_imageid_source["kfold"].append(k)
                     dictionary_imageid_source["image_id_source"].append(image_id_source)
             
