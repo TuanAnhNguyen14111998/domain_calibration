@@ -204,7 +204,7 @@ if __name__ == "__main__":
                             if main_domain == domain_name:
                                 export_main_domain = True
                             else:
-                                export_main_domain = False
+                                export_main_domain = True
                             
                             image_datasets = {
                                 "train": Dataset(
