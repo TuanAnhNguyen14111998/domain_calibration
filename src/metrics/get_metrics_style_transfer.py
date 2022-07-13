@@ -330,35 +330,38 @@ def caculate_ece_calibrate(
             val_confidences, val_pred = torch.max(torch.softmax(torch.from_numpy(val_logits)/T, 1), 1)
         
         n_bins = 10
-        if type_ece == "ece":
-            calibrated_score = compute_calibration(
-                np.array(val_ground_truth), 
-                val_pred.detach().cpu().numpy(), 
-                val_confidences.detach().cpu().numpy(), 
-                num_bins=n_bins
-            )
-        elif type_ece == "adapt":
-            calibrated_score = compute_adaptation_calibration(
-                np.array(val_ground_truth), 
-                val_pred.detach().cpu().numpy(), 
-                val_confidences.detach().cpu().numpy(), 
-                num_bins=n_bins
-            )
-        elif type_ece == "adapt_new":
-            calibrated_score = compute_calibration_adaptive_new(
-                np.array(val_ground_truth), 
-                val_pred.detach().cpu().numpy(), 
-                val_confidences.detach().cpu().numpy(), 
-                num_bins=n_bins
-            )
-        else:
-            calibrated_score = compute_calibration_class_conditional(
-                val_ground_truth,
-                confidences_all, 
-                num_bins=n_bins
-            )
+        try:
+            if type_ece == "ece":
+                calibrated_score = compute_calibration(
+                    np.array(val_ground_truth), 
+                    val_pred.detach().cpu().numpy(), 
+                    val_confidences.detach().cpu().numpy(), 
+                    num_bins=n_bins
+                )
+            elif type_ece == "adapt":
+                calibrated_score = compute_adaptation_calibration(
+                    np.array(val_ground_truth), 
+                    val_pred.detach().cpu().numpy(), 
+                    val_confidences.detach().cpu().numpy(), 
+                    num_bins=n_bins
+                )
+            elif type_ece == "adapt_new":
+                calibrated_score = compute_calibration_adaptive_new(
+                    np.array(val_ground_truth), 
+                    val_pred.detach().cpu().numpy(), 
+                    val_confidences.detach().cpu().numpy(), 
+                    num_bins=n_bins
+                )
+            else:
+                calibrated_score = compute_calibration_class_conditional(
+                    val_ground_truth,
+                    confidences_all, 
+                    num_bins=n_bins
+                )
 
-        ece_values[domain_name] = calibrated_score
+            ece_values[domain_name] = calibrated_score
+        except:
+            ece_values[domain_name] = np.nan
         
     return ece_values
 
