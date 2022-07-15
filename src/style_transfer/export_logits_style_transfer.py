@@ -202,9 +202,9 @@ if __name__ == "__main__":
                             df_info_k_fold.loc[df_info_k_fold.kfold==k, ['phase']] = 'val'
 
                             if main_domain == domain_name:
-                                export_main_domain = True
+                                export_main_domain = False
                             else:
-                                export_main_domain = True
+                                export_main_domain = False
                             
                             image_datasets = {
                                 "train": Dataset(
