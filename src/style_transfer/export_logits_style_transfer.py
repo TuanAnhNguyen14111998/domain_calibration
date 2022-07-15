@@ -36,7 +36,7 @@ def get_agument(augment_name):
     for augment in augment_name:
         if augment == "CenterCrop":
             list_augment.append(
-                A.CenterCrop(width=224, height=224),
+                A.CenterCrop(width=224, height=224, always_apply=True, p=1.0),
             )
         if augment == "Flip":
             list_augment.append(
