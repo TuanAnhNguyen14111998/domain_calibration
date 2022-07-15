@@ -234,7 +234,7 @@ if __name__ == "__main__":
                                     image_datasets[x],
                                     collate_fn=default_collate,
                                     batch_size=config_params["batch_size"], 
-                                    shuffle=True, 
+                                    shuffle=False, 
                                     num_workers=config_params["num_workers"]) for x in ['train', 'val']}
                             
                             df_finish_pred = export_logits(
