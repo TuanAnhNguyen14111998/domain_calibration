@@ -10,7 +10,7 @@ batch_size: 132
 num_workers: 4
 path_data: /workspace/raid/anhng/domain-adaptation/
 path_weight: /workspace/vinbrain/anhng/domain_adaptation/experiments_new/
-path_style_transfer: /workspace/vinbrain/anhng/domain_adaptation/experiments_style_transfer/
+path_style_transfer: /vinbrain/anhng/domain_adaptation/experiments_style_transfer_1807/
 transfer_name: FDA
 L: 0.001
 train_augment:

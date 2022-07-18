@@ -111,7 +111,7 @@ def get_image_id_source(path_style_transfer, kfold=0):
 
 
 if __name__ == "__main__":
-    config_params = load_from_yaml("./configs/config_style_transfer/exp_office.yaml")
+    config_params = load_from_yaml("./configs/config_style_transfer/exp_domain_net.yaml")
 
     for dataset_name in config_params["dataset_name"]:
         if dataset_name == "Office-Home":
@@ -134,6 +134,9 @@ if __name__ == "__main__":
 
             path_style_transfer =\
                 f"{config_params['path_style_transfer']}/{dataset_name}/{main_domain}/"
+            
+            if not os.path.isdir(path_style_transfer):
+                os.makedirs(path_style_transfer)
 
             data_transforms = {
                 'train': get_agument(config_params["train_augment"]),
